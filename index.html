@@ -21,9 +21,27 @@
       align-items: center;
       justify-content: center;
       padding: 40px 24px;
+      position: relative;
+      overflow: hidden;
     }
 
-    .icon { margin-bottom: 40px; }
+    .bg-logo {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      opacity: 0.04;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .content {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
 
     .eyebrow {
       font-size: 0.6875rem;
@@ -100,40 +118,63 @@
 
     .notify-form button:hover { background: #14674A; }
 
-    footer {
-      position: fixed;
-      bottom: 28px;
-      font-size: 0.75rem;
-      color: #3E3E3A;
-      letter-spacing: 0.05em;
+    .success {
+      display: none;
+      font-size: 0.9rem;
+      color: #35A87D;
+      text-align: center;
+      margin-top: 14px;
+      letter-spacing: 0.02em;
     }
   </style>
 </head>
 <body>
 
-  <div class="icon">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="72" height="72">
-      <rect width="256" height="256" rx="56" fill="#232320"/>
-      <line x1="60" y1="128" x2="196" y2="128" stroke="#35A87D" stroke-width="6"/>
-      <text x="128" y="104" text-anchor="middle" style="font-family:'Playfair Display',Georgia,serif;font-size:60px;font-weight:600;fill:#FFFFFF">P</text>
-      <text x="128" y="196" text-anchor="middle" style="font-family:'Playfair Display',Georgia,serif;font-size:60px;font-weight:600;fill:#FFFFFF">V</text>
+  <!-- Background watermark logo -->
+  <div class="bg-logo">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="600" height="600">
+      <rect width="256" height="256" rx="56" fill="#FFFFFF"/>
+      <line x1="60" y1="128" x2="196" y2="128" stroke="#FFFFFF" stroke-width="6"/>
+      <text x="128" y="104" text-anchor="middle" style="font-family:'Playfair Display',Georgia,serif;font-size:60px;font-weight:600;fill:#1A1A18">P</text>
+      <text x="128" y="196" text-anchor="middle" style="font-family:'Playfair Display',Georgia,serif;font-size:60px;font-weight:600;fill:#1A1A18">V</text>
     </svg>
   </div>
 
-  <div class="eyebrow">Coming soon</div>
+  <div class="content">
 
-  <h1>The market sets the price.<br><em>We set the standard.</em></h1>
+    <div class="eyebrow">Coming soon</div>
 
-  <div class="divider"></div>
+    <h1>The market sets the price.<br><em>We set the standard.</em></h1>
 
-  <p>A marketplace built for golfers who know the difference between a good deal and a great one. Par Value is on its way.</p>
+    <div class="divider"></div>
 
-  <div class="notify-form">
-    <input type="email" placeholder="Your email address" />
-    <button type="button">Notify me</button>
+    <p>A marketplace built for golfers who know the difference between a good deal and a great one. Par Value is on its way.</p>
+
+    <form class="notify-form" action="https://formspree.io/f/xvzjzedj" method="POST">
+      <input type="email" name="email" placeholder="Your email address" required />
+      <button type="submit">Notify me</button>
+    </form>
+
+    <p class="success" id="success">You're on the list. We'll be in touch.</p>
+
   </div>
 
-  <footer>&copy; 2025 Par Value</footer>
+  <script>
+    const form = document.querySelector('.notify-form');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const data = new FormData(form);
+      const res = await fetch(form.action, {
+        method: 'POST',
+        body: data,
+        headers: { 'Accept': 'application/json' }
+      });
+      if (res.ok) {
+        form.style.display = 'none';
+        document.getElementById('success').style.display = 'block';
+      }
+    });
+  </script>
 
 </body>
 </html>

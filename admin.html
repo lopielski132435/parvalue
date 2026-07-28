@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — Par Value</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    body { background: var(--pv-bg); color: var(--pv-ink); font-family: var(--font-sans); }
+
+    .admin-header {
+      background: var(--pv-surface);
+      border-bottom: 1px solid var(--pv-border);
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .admin-header .logo { font-family: var(--font-display); font-size: 1.1rem; font-weight: 600; }
+    .admin-header .badge {
+      font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em;
+      background: var(--pv-green); color: #fff; padding: 3px 8px; border-radius: 4px; margin-left: 10px;
+    }
+    .admin-header-right { display: flex; align-items: center; gap: 16px; }
+    .admin-header-right span { font-size: 0.875rem; color: var(--pv-text-secondary); }
+    .btn-logout {
+      font-size: 0.8125rem; color: var(--pv-text-secondary); background: none;
+      border: 1px solid var(--pv-border); border-radius: 6px; padding: 6px 12px; cursor: pointer;
+      font-family: var(--font-sans);
+    }
+    .btn-logout:hover { border-color: var(--pv-ink); color: var(--pv-ink); }
+
+    .admin-wrap { max-width: 1100px; margin: 0 auto; padding: 36px 24px 80px; }
+
+    .admin-title { font-family: var(--font-display); font-size: 1.5rem; font-weight: 600; margin-bottom: 4px; }
+    .admin-sub { color: var(--pv-text-secondary); font-size: 0.9375rem; margin-bottom: 28px; }
+
+    .filter-tabs {
+      display: flex; gap: 4px; margin-bottom: 24px;
+      border-bottom: 1px solid var(--pv-border); padding-bottom: 0;
+    }
+    .filter-tab {
+      padding: 8px 16px; font-size: 0.875rem; font-weight: 500; cursor: pointer;
+      border: none; background: none; font-family: var(--font-sans); color: var(--pv-text-secondary);
+      border-bottom: 2px solid transparent; margin-bottom: -1px;
+    }
+    .filter-tab.active { color: var(--pv-green); border-bottom-color: var(--pv-green); }
+    .filter-tab:hover:not(.active) { color: var(--pv-ink); }
+
+    .count-badge {
+      display: inline-block; background: #FEF3C7; color: #92400E;
+      font-size: 0.6875rem; font-weight: 600; padding: 1px 6px; border-radius: 10px; margin-left: 6px;
+    }
+    .count-badge.green { background: #D1FAE5; color: #065F46; }
+
+    .listing-queue { display: flex; flex-direction: column; gap: 20px; }
+
+    .listing-card {
+      background: var(--pv-surface);
+      border: 1px solid var(--pv-border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .card-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--pv-border);
+      background: var(--pv-bg);
+    }
+    .card-header-left { display: flex; align-items: center; gap: 12px; }
+    .listing-num { font-size: 0.875rem; font-weight: 600; font-family: monospace; color: var(--pv-ink); }
+    .status-pill {
+      font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;
+      padding: 3px 8px; border-radius: 4px;
+    }
+    .status-pill.under_review { background: #FEF3C7; color: #92400E; }
+    .status-pill.active { background: #D1FAE5; color: #065F46; }
+    .status-pill.archived { background: #FEE2E2; color: #991B1B; }
+    .submitted-at { font-size: 0.8125rem; color: var(--pv-text-secondary); }
+
+    .card-body { display: grid; grid-template-columns: 280px 1fr; gap: 0; }
+
+    .card-photos {
+      padding: 16px;
+      border-right: 1px solid var(--pv-border);
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .verify-photo-wrap { position: relative; }
+    .verify-photo-wrap img {
+      width: 100%; aspect-ratio: 4/3; object-fit: cover;
+      border-radius: 8px; border: 2px solid var(--pv-green);
+      display: block;
+    }
+    .verify-photo-label {
+      position: absolute; top: 6px; left: 6px;
+      background: var(--pv-green); color: #fff;
+      font-size: 0.625rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
+      padding: 2px 6px; border-radius: 3px;
+    }
+    .club-photos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+    .club-photos img {
+      width: 100%; aspect-ratio: 1; object-fit: cover;
+      border-radius: 6px; border: 1px solid var(--pv-border);
+    }
+    .no-photo {
+      width: 100%; aspect-ratio: 4/3; background: var(--pv-bg);
+      border-radius: 8px; border: 1px dashed var(--pv-border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.8125rem; color: var(--pv-text-tertiary);
+    }
+
+    .card-details { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+
+    .club-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 2px; }
+    .club-meta { font-size: 0.875rem; color: var(--pv-text-secondary); }
+
+    .detail-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .detail-item label {
+      font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em;
+      color: var(--pv-text-tertiary); display: block; margin-bottom: 3px;
+    }
+    .detail-item span { font-size: 0.9375rem; color: var(--pv-ink); }
+
+    .verify-row {
+      display: flex; align-items: center; gap: 12px;
+      background: #FFFBEB; border: 1px solid #FDE68A;
+      border-radius: 8px; padding: 12px 16px;
+    }
+    .verify-row label {
+      font-size: 0.6875rem; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.1em; color: #92400E; white-space: nowrap;
+    }
+    .verify-code-val {
+      font-size: 1.25rem; font-weight: 700; font-family: monospace;
+      letter-spacing: 0.2em; color: var(--pv-ink);
+    }
+    .verify-hint { font-size: 0.8125rem; color: #92400E; }
+
+    .seller-row { display: flex; align-items: center; gap: 10px; }
+    .seller-avatar {
+      width: 34px; height: 34px; border-radius: 50%;
+      background: var(--pv-bg); border: 1px solid var(--pv-border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 600; color: var(--pv-text-secondary);
+      flex-shrink: 0;
+    }
+    .seller-name { font-size: 0.9375rem; font-weight: 500; }
+    .seller-meta { font-size: 0.8125rem; color: var(--pv-text-secondary); }
+
+    .card-actions {
+      display: flex; gap: 10px; align-items: center;
+      padding: 14px 20px;
+      border-top: 1px solid var(--pv-border);
+      background: var(--pv-bg);
+    }
+    .btn-approve {
+      padding: 10px 22px; background: var(--pv-green); color: #fff;
+      border: none; border-radius: 8px; font-size: 0.9375rem; font-weight: 600;
+      font-family: var(--font-sans); cursor: pointer; transition: background 0.15s;
+    }
+    .btn-approve:hover { background: var(--pv-green-dark); }
+    .btn-approve:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-reject {
+      padding: 10px 20px; background: transparent; color: #991B1B;
+      border: 1px solid #FECACA; border-radius: 8px; font-size: 0.9375rem; font-weight: 500;
+      font-family: var(--font-sans); cursor: pointer; transition: all 0.15s;
+    }
+    .btn-reject:hover { background: #FEF2F2; border-color: #FCA5A5; }
+    .btn-reject:disabled { opacity: 0.5; cursor: not-allowed; }
+    .action-result { font-size: 0.875rem; color: var(--pv-text-secondary); margin-left: 4px; }
+
+    .empty-state {
+      text-align: center; padding: 60px 20px;
+      color: var(--pv-text-secondary); font-size: 0.9375rem;
+    }
+    .empty-state strong { display: block; font-size: 1.0625rem; color: var(--pv-ink); margin-bottom: 6px; }
+
+    .loading { text-align: center; padding: 48px; color: var(--pv-text-secondary); }
+
+    /* Modal */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.5); z-index: 100;
+      align-items: flex-start; justify-content: center;
+      overflow-y: auto; padding: 40px 16px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--pv-surface); border-radius: 14px;
+      width: 100%; max-width: 860px; position: relative;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    }
+    .modal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 24px; border-bottom: 1px solid var(--pv-border);
+    }
+    .modal-header h2 { font-family: var(--font-display); font-size: 1.1rem; font-weight: 600; margin: 0; }
+    .modal-close {
+      background: none; border: none; font-size: 1.25rem; cursor: pointer;
+      color: var(--pv-text-secondary); padding: 4px 8px; border-radius: 6px;
+      font-family: var(--font-sans); line-height: 1;
+    }
+    .modal-close:hover { background: var(--pv-bg); color: var(--pv-ink); }
+    .modal-body { padding: 24px; display: flex; flex-direction: column; gap: 24px; }
+    .modal-photos { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .modal-verify-photo { position: relative; }
+    .modal-verify-photo img { width: 100%; border-radius: 8px; border: 2px solid var(--pv-green); display: block; }
+    .modal-club-photos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .modal-club-photos img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 6px; border: 1px solid var(--pv-border); }
+    .modal-section-label {
+      font-size: 0.6875rem; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.1em; color: var(--pv-text-tertiary); margin-bottom: 12px;
+    }
+    .modal-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .modal-field label {
+      display: block; font-size: 0.75rem; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.1em; color: var(--pv-text-tertiary); margin-bottom: 6px;
+    }
+    .modal-field input, .modal-field select, .modal-field textarea {
+      width: 100%; padding: 9px 12px; border: 1px solid var(--pv-border);
+      border-radius: 7px; font-size: 0.9375rem; font-family: var(--font-sans);
+      background: var(--pv-surface); color: var(--pv-ink); outline: none;
+      appearance: none; -webkit-appearance: none; box-sizing: border-box;
+    }
+    .modal-field input:focus, .modal-field select:focus { border-color: var(--pv-green); }
+    .modal-field textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
+    .modal-field.full { grid-column: 1 / -1; }
+    .modal-verify-box {
+      display: flex; align-items: center; gap: 12px;
+      background: #FFFBEB; border: 1px solid #FDE68A;
+      border-radius: 8px; padding: 12px 16px;
+    }
+    .modal-verify-box label { font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: #92400E; white-space: nowrap; }
+    .modal-verify-box .code { font-size: 1.5rem; font-weight: 700; font-family: monospace; letter-spacing: 0.2em; }
+    .modal-verify-box .hint { font-size: 0.8125rem; color: #92400E; }
+    .modal-footer {
+      display: flex; gap: 10px; align-items: center;
+      padding: 16px 24px; border-top: 1px solid var(--pv-border);
+      background: var(--pv-bg); border-radius: 0 0 14px 14px;
+    }
+    .btn-save {
+      padding: 10px 20px; background: transparent; color: var(--pv-ink);
+      border: 1px solid var(--pv-border); border-radius: 8px; font-size: 0.9375rem;
+      font-weight: 500; font-family: var(--font-sans); cursor: pointer;
+    }
+    .btn-save:hover { border-color: var(--pv-ink); }
+    .listing-card { cursor: pointer; transition: box-shadow 0.15s; }
+    .listing-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+
+    /* Rejection dialog */
+    .reject-dialog-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.6); z-index: 200;
+      align-items: center; justify-content: center;
+    }
+    .reject-dialog-overlay.open { display: flex; }
+    .reject-dialog {
+      background: var(--pv-surface); border-radius: 12px;
+      width: 100%; max-width: 480px; margin: 0 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    }
+    .reject-dialog-header {
+      padding: 18px 20px 14px;
+      border-bottom: 1px solid var(--pv-border);
+    }
+    .reject-dialog-header h3 {
+      font-family: var(--font-display); font-size: 1rem;
+      font-weight: 600; margin: 0 0 4px;
+    }
+    .reject-dialog-header p { font-size: 0.875rem; color: var(--pv-text-secondary); margin: 0; }
+    .reject-dialog-body { padding: 18px 20px; }
+    .reject-dialog-body label {
+      display: block; font-size: 0.75rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      color: var(--pv-text-tertiary); margin-bottom: 8px;
+    }
+    .reject-dialog-body textarea {
+      width: 100%; padding: 10px 12px; border: 1px solid var(--pv-border);
+      border-radius: 8px; font-size: 0.9375rem; font-family: var(--font-sans);
+      background: var(--pv-surface); color: var(--pv-ink);
+      resize: vertical; min-height: 100px; line-height: 1.6;
+      outline: none; box-sizing: border-box;
+    }
+    .reject-dialog-body textarea:focus { border-color: #E74C3C; }
+    .reject-dialog-footer {
+      display: flex; gap: 10px; padding: 14px 20px;
+      border-top: 1px solid var(--pv-border);
+    }
+    .btn-confirm-reject {
+      padding: 10px 20px; background: #DC2626; color: #fff;
+      border: none; border-radius: 8px; font-size: 0.9375rem; font-weight: 600;
+      font-family: var(--font-sans); cursor: pointer;
+    }
+    .btn-confirm-reject:hover { background: #B91C1C; }
+    .btn-cancel {
+      padding: 10px 16px; background: transparent; color: var(--pv-text-secondary);
+      border: 1px solid var(--pv-border); border-radius: 8px; font-size: 0.9375rem;
+      font-family: var(--font-sans); cursor: pointer;
+    }
+    .btn-cancel:hover { border-color: var(--pv-ink); color: var(--pv-ink); }
+
+    /* Auth gate */
+    #auth-gate {
+      max-width: 380px; margin: 80px auto; padding: 0 24px;
+      text-align: center;
+    }
+    #auth-gate h2 { font-family: var(--font-display); font-size: 1.25rem; margin-bottom: 8px; }
+    #auth-gate p { color: var(--pv-text-secondary); font-size: 0.9375rem; margin-bottom: 24px; }
+    #auth-gate a {
+      display: inline-block; padding: 12px 28px; background: var(--pv-green); color: #fff;
+      border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.9375rem;
+    }
+
+    @media (max-width: 768px) {
+      .card-body { grid-template-columns: 1fr; }
+      .card-photos { border-right: none; border-bottom: 1px solid var(--pv-border); }
+      .detail-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Rejection reason dialog -->
+  <div class="reject-dialog-overlay" id="reject-overlay">
+    <div class="reject-dialog">
+      <div class="reject-dialog-header">
+        <h3>Reject listing</h3>
+        <p>This message will be sent to the lister explaining why their listing was rejected.</p>
+      </div>
+      <div class="reject-dialog-body">
+        <label>Reason for rejection</label>
+        <textarea id="reject-reason" placeholder="e.g. The verification code in the photo does not match the code assigned to this listing. Please resubmit with a clear photo showing the correct code."></textarea>
+      </div>
+      <div class="reject-dialog-footer">
+        <button class="btn-confirm-reject" onclick="confirmReject()">Reject &amp; notify lister</button>
+        <button class="btn-cancel" onclick="closeRejectDialog()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detail / edit modal -->
+  <div class="modal-overlay" id="modal-overlay" onclick="closeModalOnBackdrop(event)">
+    <div class="modal" id="modal">
+      <div class="modal-header">
+        <h2 id="modal-title">Listing detail</h2>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+      <div class="modal-body" id="modal-body"></div>
+      <div class="modal-footer" id="modal-footer"></div>
+    </div>
+  </div>
+
+  <div id="auth-gate" style="display:none">
+    <h2>Admin access only</h2>
+    <p>You need to be signed in as an admin to view this page.</p>
+    <a href="login.html?next=admin.html">Sign in</a>
+  </div>
+
+  <div id="admin-ui" style="display:none">
+    <header class="admin-header">
+      <div style="display:flex;align-items:center;gap:10px">
+        <a href="browse.html" style="text-decoration:none">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 100" height="22">
+            <text x="224" y="54" text-anchor="middle" style="font-family:'Playfair Display',Georgia,serif;font-size:38px;font-weight:500;letter-spacing:8px;fill:#1A1A18">PAR VALUE</text>
+            <line x1="120" y1="74" x2="320" y2="74" stroke="#1A7F5A" stroke-width="2"/>
+          </svg>
+        </a>
+        <span class="badge">Admin</span>
+      </div>
+      <div class="admin-header-right">
+        <a href="browse.html" style="font-size:0.875rem;color:var(--pv-text-secondary);text-decoration:none;padding:6px 10px;border-radius:6px" onmouseover="this.style.color='var(--pv-ink)'" onmouseout="this.style.color='var(--pv-text-secondary)'">Browse</a>
+        <a href="messages.html" style="font-size:0.875rem;color:var(--pv-text-secondary);text-decoration:none;padding:6px 10px;border-radius:6px" onmouseover="this.style.color='var(--pv-ink)'" onmouseout="this.style.color='var(--pv-text-secondary)'">Messages</a>
+        <a href="account.html" style="font-size:0.875rem;color:var(--pv-text-secondary);text-decoration:none;padding:6px 10px;border-radius:6px" onmouseover="this.style.color='var(--pv-ink)'" onmouseout="this.style.color='var(--pv-text-secondary)'">My Account</a>
+        <span id="admin-user-name" style="font-size:0.875rem;color:var(--pv-text-secondary)"></span>
+        <button class="btn-logout" onclick="signOut()">Sign out</button>
+      </div>
+    </header>
+
+    <div class="admin-wrap">
+      <h1 class="admin-title">Listing review queue</h1>
+      <p class="admin-sub">Verify ownership photos and approve or reject each listing.</p>
+
+      <div class="filter-tabs">
+        <button class="filter-tab active" data-status="under_review" onclick="setFilter('under_review', this)">
+          Pending review <span class="count-badge" id="count-review">—</span>
+        </button>
+        <button class="filter-tab" data-status="active" onclick="setFilter('active', this)">
+          Approved <span class="count-badge green" id="count-active">—</span>
+        </button>
+        <button class="filter-tab" data-status="archived" onclick="setFilter('archived', this)">
+          Rejected <span class="count-badge" id="count-rejected" style="background:#FEE2E2;color:#991B1B">—</span>
+        </button>
+        <button class="filter-tab" data-status="all" onclick="setFilter('all', this)">All listings</button>
+      </div>
+
+      <div id="queue" class="listing-queue">
+        <div class="loading">Loading…</div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { supabase } from './js/supabase.js'
+
+    let currentFilter = 'under_review'
+
+    // ── Auth gate ────────────────────────────────────────────
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) {
+      document.getElementById('auth-gate').style.display = 'block'
+    } else {
+      const { data: profile } = await supabase
+        .from('profiles').select('full_name, is_admin').eq('id', session.user.id).single()
+      if (!profile?.is_admin) {
+        document.getElementById('auth-gate').style.display = 'block'
+      } else {
+        document.getElementById('admin-ui').style.display = 'block'
+        document.getElementById('admin-user-name').textContent = profile.full_name || session.user.email
+        loadListings()
+      }
+    }
+
+    window.signOut = async () => {
+      await supabase.auth.signOut()
+      window.location.href = 'login.html'
+    }
+
+    // ── Filter tabs ──────────────────────────────────────────
+    window.setFilter = (status, btn) => {
+      currentFilter = status
+      document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'))
+      btn.classList.add('active')
+      loadListings()
+    }
+
+    // ── Load listings ────────────────────────────────────────
+    async function loadListings() {
+      const queue = document.getElementById('queue')
+      queue.innerHTML = '<div class="loading">Loading…</div>'
+
+      let query = supabase
+        .from('listings')
+        .select(`
+          id, listing_number, title, brand, model, category, condition, price,
+          location, year, hand, verification_code, status, created_at, user_id,
+          profiles:user_id (full_name, avatar_url, seller_type, state),
+          listing_images (url, position)
+        `)
+        .order('created_at', { ascending: false })
+
+      if (currentFilter !== 'all') query = query.eq('status', currentFilter)
+
+      const { data: listings, error } = await query
+      if (error) { queue.innerHTML = `<div class="empty-state"><strong>Error</strong>${error.message}</div>`; return }
+
+      // Update counts
+      const reviewCount = listings.filter(l => l.status === 'under_review').length
+      const activeCount = listings.filter(l => l.status === 'active').length
+      const rejectedCount = listings.filter(l => l.status === 'archived').length
+      if (currentFilter === 'all') {
+        document.getElementById('count-review').textContent = reviewCount
+        document.getElementById('count-active').textContent = activeCount
+        document.getElementById('count-rejected').textContent = rejectedCount
+      } else if (currentFilter === 'under_review') {
+        document.getElementById('count-review').textContent = listings.length
+      } else if (currentFilter === 'active') {
+        document.getElementById('count-active').textContent = listings.length
+      } else if (currentFilter === 'archived') {
+        document.getElementById('count-rejected').textContent = listings.length
+      }
+
+      if (!listings.length) {
+        queue.innerHTML = `<div class="empty-state"><strong>Nothing here</strong>No listings in this view.</div>`
+        return
+      }
+
+      window.__listings = listings
+      queue.innerHTML = ''
+      listings.forEach(l => queue.appendChild(buildCard(l)))
+    }
+
+    // ── Build card ───────────────────────────────────────────
+    function buildCard(l) {
+      const images = (l.listing_images || []).sort((a, b) => a.position - b.position)
+      const verifyImg = images.find(i => i.url?.includes('/verify.'))
+      const clubImgs = images.filter(i => !i.url?.includes('/verify.')).slice(0, 6)
+
+      const seller = l.profiles || {}
+      const initials = (seller.full_name || '?').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
+      const submittedDate = new Date(l.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+      const price = '$' + Number(l.price).toLocaleString()
+
+      const card = document.createElement('div')
+      card.className = 'listing-card'
+      card.id = `card-${l.id}`
+      card.addEventListener('click', (e) => {
+        if (e.target.closest('.btn-approve, .btn-reject')) return
+        openModal(l.id)
+      })
+
+      card.innerHTML = `
+        <div class="card-header">
+          <div class="card-header-left">
+            <span class="listing-num">${l.listing_number || '—'}</span>
+            <span class="status-pill ${l.status}">${statusLabel(l.status)}</span>
+          </div>
+          <span class="submitted-at">Submitted ${submittedDate}</span>
+        </div>
+
+        <div class="card-body">
+          <div class="card-photos">
+            ${verifyImg
+              ? `<div class="verify-photo-wrap">
+                  <img src="${verifyImg.url}" alt="Verification photo" />
+                  <span class="verify-photo-label">Verification</span>
+                </div>`
+              : `<div class="no-photo">No verification photo</div>`
+            }
+            ${clubImgs.length
+              ? `<div class="club-photos">${clubImgs.map(i => `<img src="${i.url}" alt="Club photo" />`).join('')}</div>`
+              : ''
+            }
+          </div>
+
+          <div class="card-details">
+            <div>
+              <div class="club-title">${l.title || `${l.brand} ${l.model}`}</div>
+              <div class="club-meta">${capitalize(l.category)} · ${conditionLabel(l.condition)} · ${l.year || 'Year unknown'}</div>
+            </div>
+
+            <div class="detail-grid">
+              <div class="detail-item">
+                <label>Price</label>
+                <span>${price}</span>
+              </div>
+              <div class="detail-item">
+                <label>Hand</label>
+                <span>${l.hand === 'left' ? 'Left-handed' : 'Right-handed'}</span>
+              </div>
+              <div class="detail-item">
+                <label>Location</label>
+                <span>${l.location || '—'}</span>
+              </div>
+            </div>
+
+            <div class="verify-row">
+              <label>Code to match</label>
+              <span class="verify-code-val">${l.verification_code || '—'}</span>
+              <span class="verify-hint">Check this matches the handwritten code in the verification photo above.</span>
+            </div>
+
+            <div class="seller-row">
+              <div class="seller-avatar">${initials}</div>
+              <div>
+                <div class="seller-name">${seller.full_name || 'Unknown seller'}</div>
+                <div class="seller-meta">${seller.seller_type === 'dealer' ? 'Dealer' : 'Private seller'}${seller.state ? ' · ' + seller.state : ''}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        ${l.status === 'under_review' ? `
+        <div class="card-actions" id="actions-${l.id}">
+          <button class="btn-approve" onclick="approve('${l.id}')">Approve listing</button>
+          <button class="btn-reject" onclick="reject('${l.id}')">Reject</button>
+          <span class="action-result" id="result-${l.id}"></span>
+        </div>` : ''}
+      `
+      return card
+    }
+
+    // ── Approve / Reject ─────────────────────────────────────
+    window.approve = async (id) => {
+      await updateStatus(id, 'active', 'Approved — listing is now live.')
+    }
+
+    window.reject = async (id) => {
+      await updateStatus(id, 'archived', 'Rejected.')
+    }
+
+    async function updateStatus(id, status, msg) {
+      const approveBtn = document.querySelector(`#actions-${id} .btn-approve`)
+      const rejectBtn = document.querySelector(`#actions-${id} .btn-reject`)
+      const resultEl = document.getElementById(`result-${id}`)
+      if (approveBtn) approveBtn.disabled = true
+      if (rejectBtn) rejectBtn.disabled = true
+      if (resultEl) resultEl.textContent = 'Saving…'
+
+      const { error } = await supabase.from('listings').update({ status }).eq('id', id)
+
+      if (error) {
+        if (resultEl) resultEl.textContent = 'Error: ' + error.message
+        if (approveBtn) approveBtn.disabled = false
+        if (rejectBtn) rejectBtn.disabled = false
+        return
+      }
+
+      // Update status pill in card header
+      const card = document.getElementById(`card-${id}`)
+      const pill = card?.querySelector('.status-pill')
+      if (pill) { pill.className = `status-pill ${status}`; pill.textContent = statusLabel(status) }
+      if (resultEl) resultEl.textContent = msg
+
+      // Hide action buttons after a short delay
+      setTimeout(() => {
+        const actions = document.getElementById(`actions-${id}`)
+        if (actions) actions.style.opacity = '0.5'
+      }, 1200)
+    }
+
+    // ── Modal ────────────────────────────────────────────────
+    let modalListing = null
+
+    window.openModal = (id) => {
+      const l = window.__listings?.find(x => x.id === id)
+      if (!l) return
+      modalListing = l
+      const images = (l.listing_images || []).sort((a, b) => a.position - b.position)
+      const verifyImg = images.find(i => i.url?.includes('/verify.'))
+      const clubImgs = images.filter(i => !i.url?.includes('/verify.'))
+      const seller = l.profiles || {}
+
+      document.getElementById('modal-title').textContent = l.listing_number ? `${l.listing_number} — ${l.title}` : l.title
+
+      document.getElementById('modal-body').innerHTML = `
+        <div class="modal-verify-box">
+          <label>Code to match</label>
+          <span class="code">${l.verification_code || '—'}</span>
+          <span class="hint">Confirm this matches the handwritten code in the verification photo.</span>
+        </div>
+
+        <div class="modal-photos">
+          <div>
+            <p class="modal-section-label">Verification photo</p>
+            ${verifyImg
+              ? `<div class="modal-verify-photo"><img src="${verifyImg.url}" /></div>`
+              : `<div style="height:160px;background:var(--pv-bg);border-radius:8px;border:1px dashed var(--pv-border);display:flex;align-items:center;justify-content:center;color:var(--pv-text-tertiary);font-size:0.875rem">No verification photo</div>`
+            }
+          </div>
+          <div>
+            <p class="modal-section-label">Club photos</p>
+            ${clubImgs.length
+              ? `<div class="modal-club-photos">${clubImgs.map(i => `<img src="${i.url}" />`).join('')}</div>`
+              : `<div style="height:160px;background:var(--pv-bg);border-radius:8px;border:1px dashed var(--pv-border);display:flex;align-items:center;justify-content:center;color:var(--pv-text-tertiary);font-size:0.875rem">No photos</div>`
+            }
+          </div>
+        </div>
+
+        <div>
+          <p class="modal-section-label">Club details</p>
+          <div class="modal-fields">
+            <div class="modal-field">
+              <label>Brand</label>
+              <input id="edit-brand" type="text" value="${l.brand || ''}" />
+            </div>
+            <div class="modal-field">
+              <label>Model</label>
+              <input id="edit-model" type="text" value="${l.model || ''}" />
+            </div>
+            <div class="modal-field">
+              <label>Category</label>
+              <select id="edit-category">
+                ${['wood','iron','wedge','putter'].map(c => `<option value="${c}" ${l.category === c ? 'selected' : ''}>${capitalize(c)}</option>`).join('')}
+              </select>
+            </div>
+            <div class="modal-field">
+              <label>Condition</label>
+              <select id="edit-condition">
+                ${[['new','New'],['like_new','Used – Like New'],['good','Used – Good'],['fair','Used – Fair']].map(([v,t]) => `<option value="${v}" ${l.condition === v ? 'selected' : ''}>${t}</option>`).join('')}
+              </select>
+            </div>
+            <div class="modal-field">
+              <label>Price ($)</label>
+              <input id="edit-price" type="number" value="${l.price || ''}" />
+            </div>
+            <div class="modal-field">
+              <label>Year</label>
+              <input id="edit-year" type="text" value="${l.year || ''}" />
+            </div>
+            <div class="modal-field">
+              <label>Hand</label>
+              <select id="edit-hand">
+                <option value="right" ${l.hand === 'right' ? 'selected' : ''}>Right-handed</option>
+                <option value="left" ${l.hand === 'left' ? 'selected' : ''}>Left-handed</option>
+              </select>
+            </div>
+            <div class="modal-field">
+              <label>Location</label>
+              <input id="edit-location" type="text" value="${l.location || ''}" />
+            </div>
+            <div class="modal-field full">
+              <label>Description</label>
+              <textarea id="edit-description">${l.description || ''}</textarea>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <p class="modal-section-label">Seller</p>
+          <div style="font-size:0.9375rem">
+            <strong>${seller.full_name || 'Unknown'}</strong>
+            <span style="color:var(--pv-text-secondary);margin-left:8px">${seller.seller_type === 'dealer' ? 'Dealer' : 'Private seller'}${seller.state ? ' · ' + seller.state : ''}</span>
+          </div>
+        </div>
+      `
+
+      document.getElementById('modal-footer').innerHTML = `
+        <button class="btn-approve" onclick="approveFromModal()">Approve listing</button>
+        <button class="btn-reject" onclick="rejectFromModal()">Reject</button>
+        <button class="btn-delete" onclick="deleteListing()" style="padding:10px 16px;background:transparent;border:1px solid #FECACA;color:#DC2626;border-radius:8px;font-size:0.875rem;font-weight:600;font-family:var(--font-sans);cursor:pointer;display:none">Delete permanently</button>
+        <button class="btn-save" onclick="saveEdits()" style="margin-left:auto">Save edits</button>
+        <span id="modal-result" style="font-size:0.875rem;color:var(--pv-text-secondary)"></span>
+      `
+
+      // Hide approve/reject if already actioned; show delete only for rejected
+      if (l.status !== 'under_review') {
+        document.querySelector('#modal-footer .btn-approve').style.display = 'none'
+        document.querySelector('#modal-footer .btn-reject').style.display = 'none'
+      }
+      if (l.status === 'archived') {
+        document.querySelector('#modal-footer .btn-delete').style.display = 'inline-block'
+      }
+
+      document.getElementById('modal-overlay').classList.add('open')
+      document.body.style.overflow = 'hidden'
+    }
+
+    window.closeModal = () => {
+      document.getElementById('modal-overlay').classList.remove('open')
+      document.body.style.overflow = ''
+      modalListing = null
+    }
+
+    window.deleteListing = async () => {
+      if (!modalListing) return
+      const confirmed = window.confirm(`Permanently delete this listing? This cannot be undone.`)
+      if (!confirmed) return
+      const id = modalListing.id
+      await supabase.from('listing_images').delete().eq('listing_id', id)
+      await supabase.from('listings').delete().eq('id', id)
+      window.closeModal()
+      window.__listings = window.__listings.filter(l => l.id !== id)
+      renderListings(window.__listings)
+    }
+
+    window.closeModalOnBackdrop = (e) => {
+      if (e.target === document.getElementById('modal-overlay')) closeModal()
+    }
+
+    window.saveEdits = async () => {
+      if (!modalListing) return
+      const result = document.getElementById('modal-result')
+      result.textContent = 'Saving…'
+      const brand = document.getElementById('edit-brand').value.trim()
+      const model = document.getElementById('edit-model').value.trim()
+      const { error } = await supabase.from('listings').update({
+        brand,
+        model,
+        title: `${brand} ${model}`,
+        category: document.getElementById('edit-category').value,
+        condition: document.getElementById('edit-condition').value,
+        price: Number(document.getElementById('edit-price').value),
+        year: document.getElementById('edit-year').value || null,
+        hand: document.getElementById('edit-hand').value,
+        location: document.getElementById('edit-location').value.trim(),
+        description: document.getElementById('edit-description').value.trim() || null,
+      }).eq('id', modalListing.id)
+      result.textContent = error ? 'Error: ' + error.message : 'Saved.'
+      if (!error) loadListings()
+    }
+
+    window.approveFromModal = async () => {
+      if (!modalListing) return
+      const listing = modalListing
+      await updateStatus(listing.id, 'active', 'Approved — listing is now live.')
+
+      // Send approval message to lister
+      const { data: { session } } = await supabase.auth.getSession()
+      const seller = listing.profiles || {}
+      const firstName = seller.full_name ? seller.full_name.split(' ')[0] : 'there'
+      await supabase.from('messages').insert({
+        listing_id: listing.id,
+        sender_id: session.user.id,
+        recipient_id: listing.user_id,
+        body: `Hi ${firstName}! Your listing "${listing.title}" has been approved and is now live.`,
+      })
+
+      closeModal()
+    }
+
+    window.rejectFromModal = () => openRejectDialog(modalListing?.id)
+    window.reject = (id) => openRejectDialog(id)
+
+    let rejectTargetId = null
+    function openRejectDialog(id) {
+      rejectTargetId = id
+      document.getElementById('reject-reason').value = ''
+      const btn = document.querySelector('.btn-confirm-reject')
+      btn.disabled = false
+      btn.textContent = 'Reject & notify lister'
+      document.getElementById('reject-overlay').classList.add('open')
+    }
+
+    window.closeRejectDialog = () => {
+      document.getElementById('reject-overlay').classList.remove('open')
+      rejectTargetId = null
+    }
+
+    window.confirmReject = async () => {
+      if (!rejectTargetId) return
+      const reason = document.getElementById('reject-reason').value.trim()
+      if (!reason) { document.getElementById('reject-reason').focus(); return }
+
+      const btn = document.querySelector('.btn-confirm-reject')
+      btn.disabled = true; btn.textContent = 'Rejecting…'
+
+      // Update listing status + store reason
+      const { error } = await supabase.from('listings').update({
+        status: 'archived',
+        rejection_reason: reason,
+      }).eq('id', rejectTargetId)
+
+      if (error) {
+        btn.disabled = false; btn.textContent = 'Reject & notify lister'
+        alert('Error: ' + error.message)
+        return
+      }
+
+      // Send message to lister via messages table
+      const listing = window.__listings?.find(l => l.id === rejectTargetId)
+      if (listing) {
+        const { data: { session } } = await supabase.auth.getSession()
+        await supabase.from('messages').insert({
+          listing_id: rejectTargetId,
+          sender_id: session.user.id,
+          recipient_id: listing.user_id,
+          body: `Your listing "${listing.title}" was not approved.\n\n${reason}\n\nYou're welcome to make corrections and resubmit.`,
+        })
+      }
+
+      closeRejectDialog()
+      closeModal()
+      loadListings()
+    }
+
+    // ── Helpers ──────────────────────────────────────────────
+    function statusLabel(s) {
+      return { under_review: 'Under Review', active: 'Live', archived: 'Rejected', draft: 'Draft' }[s] || s
+    }
+    function conditionLabel(c) {
+      return { new: 'New', like_new: 'Like New', good: 'Used – Good', fair: 'Used – Fair' }[c] || c
+    }
+    function capitalize(s) { return s ? s[0].toUpperCase() + s.slice(1) : '' }
+  </script>
+
+</body>
+</html>

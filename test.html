@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QA Test Harness — Par Value</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    body { background: var(--pv-paper); padding: 0 0 80px; }
+
+    .test-header {
+      background: var(--pv-ink);
+      color: #fff;
+      padding: 20px 32px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .test-header h1 { font-family: var(--font-display); font-size: 1.375rem; margin-bottom: 2px; }
+    .test-header p { font-size: 0.8125rem; color: #B8B6AC; }
+
+    .test-nav {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+    .test-nav a {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #B8B6AC;
+      background: rgba(255,255,255,0.08);
+      padding: 5px 10px;
+      border-radius: 6px;
+      text-decoration: none;
+    }
+    .test-nav a:hover { background: rgba(255,255,255,0.16); color: #fff; text-decoration: none; }
+
+    .test-section {
+      max-width: 760px;
+      margin: 36px auto 0;
+      padding: 0 24px;
+    }
+
+    .test-card {
+      background: var(--pv-surface);
+      border: 1px solid var(--pv-border);
+      border-radius: 12px;
+      padding: 28px;
+    }
+
+    .test-card h2 {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .test-card > p.test-desc {
+      font-size: 0.875rem;
+      color: var(--pv-text-secondary);
+      margin-bottom: 20px;
+    }
+
+    .test-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 6px;
+      margin-bottom: 16px;
+    }
+    .test-status.pass { background: #E8F5EE; color: var(--pv-green); }
+    .test-status.fail { background: #FEF2F2; color: #991B1B; }
+    .test-status.pending { background: var(--pv-paper); color: var(--pv-text-tertiary); }
+
+    .fg { margin-bottom: 16px; }
+    .fg:last-child { margin-bottom: 0; }
+    .fg label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--pv-text-tertiary);
+      margin-bottom: 6px;
+    }
+    .fg input, .fg select {
+      width: 100%;
+      padding: 10px 13px;
+      border: 1px solid var(--pv-border);
+      border-radius: 8px;
+      font-size: 0.9375rem;
+      font-family: var(--font-sans);
+      background: var(--pv-surface);
+      color: var(--pv-ink);
+      outline: none;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236B6A64' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 32px;
+    }
+    .fg input { background-image: none; padding-right: 13px; }
+    .fg input:focus, .fg select:focus { border-color: var(--pv-green); }
+    .fg select:disabled { opacity: 0.45; }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    .pill-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; }
+    .pill {
+      border: 1px solid var(--pv-border);
+      border-radius: 8px;
+      padding: 12px 8px;
+      cursor: pointer;
+      text-align: center;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      transition: border-color 0.12s, background 0.12s;
+      user-select: none;
+    }
+    .pill:hover { border-color: var(--pv-green); }
+    .pill.selected { border-color: var(--pv-green); background: #F0FAF5; color: var(--pv-green); }
+
+    .revert-link { font-size: 0.8125rem; margin-top: 6px; display: none; }
+
+    .btn-mini {
+      padding: 9px 16px;
+      background: var(--pv-green);
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      font-family: var(--font-sans);
+      cursor: pointer;
+    }
+    .btn-mini:hover { background: var(--pv-green-dark); }
+    .btn-mini.secondary { background: var(--pv-surface); color: var(--pv-ink); border: 1px solid var(--pv-border); }
+
+    .output-box {
+      margin-top: 16px;
+      padding: 14px 16px;
+      background: var(--pv-paper);
+      border-radius: 8px;
+      font-size: 0.8125rem;
+      font-family: 'SF Mono', Monaco, monospace;
+      color: var(--pv-text-secondary);
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .toggle-row label { font-size: 0.875rem; font-weight: 500; color: var(--pv-ink); }
+    .toggle-switch {
+      width: 40px; height: 22px;
+      background: var(--pv-border);
+      border-radius: 11px;
+      position: relative;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .toggle-switch.on { background: var(--pv-green); }
+    .toggle-switch .knob {
+      width: 18px; height: 18px;
+      background: #fff;
+      border-radius: 50%;
+      position: absolute;
+      top: 2px; left: 2px;
+      transition: left 0.15s;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    }
+    .toggle-switch.on .knob { left: 20px; }
+
+    .anon-badge {
+      font-size: 0.6875rem; font-weight: 600; padding: 3px 8px; border-radius: 5px;
+      background: #EFEDE6; color: var(--pv-text-tertiary); text-transform: uppercase; letter-spacing: 0.06em;
+      display: inline-block;
+    }
+    .revealed-badge {
+      font-size: 0.6875rem; font-weight: 600; padding: 3px 8px; border-radius: 5px;
+      background: #E8F5EE; color: var(--pv-green); display: inline-block;
+    }
+
+    .rater-options { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .cond-rate-btn {
+      text-align: left; padding: 12px 14px; border: 1px solid var(--pv-border); border-radius: 8px;
+      background: var(--pv-surface); cursor: pointer; font-family: var(--font-sans);
+    }
+    .cond-rate-btn strong { display: block; font-size: 0.875rem; color: var(--pv-ink); margin-bottom: 2px; }
+    .cond-rate-btn span { font-size: 0.75rem; color: var(--pv-text-secondary); }
+    .cond-rate-btn:hover { border-color: var(--pv-green); }
+    .cond-rate-btn.selected { border-color: var(--pv-green); background: #F0FAF5; }
+  </style>
+</head>
+<body>
+
+  <div class="test-header">
+    <h1>QA Test Harness</h1>
+    <p>Exercises the real shared modules (catalog.js, market.js, states.js) with mock data — no Supabase calls. Not linked from the live site.</p>
+    <div class="test-nav">
+      <a href="#cascade">Category/Brand/Model</a>
+      <a href="#specs">Specs + Condition</a>
+      <a href="#parmeter">Par-meter</a>
+      <a href="#states">State dropdown</a>
+      <a href="#anon">Messaging anonymity</a>
+      <a href="#rating">Buyer condition rating</a>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ -->
+  <div class="test-section" id="cascade">
+    <div class="test-card">
+      <h2>1. Category → Brand → Model cascade</h2>
+      <p class="test-desc">Same logic as sell.html. Includes "Other" free-text fallback for both brand and model.</p>
+      <span class="test-status pending" id="cascade-status">Not tested yet</span>
+
+      <div class="pill-grid" id="cat-pills"></div>
+
+      <div class="form-row">
+        <div class="fg">
+          <label>Brand</label>
+          <select id="brand-select" disabled><option value="">Select category first</option></select>
+          <input type="text" id="brand-other-input" placeholder="Enter brand name" style="display:none;margin-top:8px" />
+          <a href="#" id="brand-revert-link" class="revert-link">← Choose from list instead</a>
+        </div>
+        <div class="fg">
+          <label>Model</label>
+          <select id="model-select" disabled><option value="">Select brand first</option></select>
+          <input type="text" id="model-other-input" placeholder="Enter model name" style="display:none;margin-top:8px" />
+          <a href="#" id="model-revert-link" class="revert-link">← Choose from list instead</a>
+        </div>
+      </div>
+
+      <div class="output-box" id="cascade-output">Select a category to begin…</div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ -->
+  <div class="test-section" id="specs">
+    <div class="test-card">
+      <h2>2. Dynamic specs + condition picker</h2>
+      <p class="test-desc">Spec fields change per category (loft/flex/shaft/etc). Condition pills match the 6-tier seller scale.</p>
+
+      <div id="specs-fields" style="margin-bottom:16px"></div>
+
+      <div class="pill-grid" id="cond-pills"></div>
+      <div class="output-box" id="specs-output">Pick a category above first.</div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ -->
+  <div class="test-section" id="parmeter">
+    <div class="test-card">
+      <h2>3. Par-meter rendering</h2>
+      <p class="test-desc">Live-recomputes using the real renderParMeter() from market.js. Edit the numbers below.</p>
+
+      <div class="form-row">
+        <div class="fg"><label>Listing price ($)</label><input type="number" id="pm-price" value="450" /></div>
+        <div class="fg"><label>Market avg price ($)</label><input type="number" id="pm-avg" value="500" /></div>
+      </div>
+      <div class="form-row">
+        <div class="fg"><label>Market low ($)</label><input type="number" id="pm-low" value="380" /></div>
+        <div class="fg"><label>Market high ($)</label><input type="number" id="pm-high" value="620" /></div>
+      </div>
+      <div class="fg"><label>Sample count</label><input type="number" id="pm-count" value="14" /></div>
+
+      <div id="pm-container" style="margin-top:16px"></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ -->
+  <div class="test-section" id="states">
+    <div class="test-card">
+      <h2>4. US state dropdown</h2>
+      <p class="test-desc">Same list used in signup.html / listing.html / messages.html.</p>
+      <div class="fg">
+        <label>State</label>
+        <select id="state-select"><option value="">Select your state</option></select>
+      </div>
+      <div class="output-box" id="state-output">No state selected.</div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ -->
+  <div class="test-section" id="anon">
+    <div class="test-card">
+      <h2>5. Messaging anonymity badge</h2>
+      <p class="test-desc">Mirrors messages.html logic: state always shows, name/avatar only reveal once an offer is accepted.</p>
+
+      <div class="toggle-row">
+        <div class="toggle-switch" id="reveal-toggle" onclick="toggleReveal()"><div class="knob"></div></div>
+        <label>Offer accepted (identity revealed)</label>
+      </div>
+
+      <div class="fg"><label>Mock counterparty name</label><input type="text" id="mock-name" value="Mike Reynolds" /></div>
+      <div class="fg"><label>Role</label>
+        <select id="mock-role"><option value="seller">Seller</option><option value="buyer">Buyer</option></select>
+      </div>
+
+      <div style="margin-top:16px">Badge preview: <span id="anon-badge-preview"></span></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════ -->
+  <div class="test-section" id="rating">
+    <div class="test-card">
+      <h2>6. Buyer condition rating widget</h2>
+      <p class="test-desc">Same renderConditionRater() from market.js, used post-purchase.</p>
+      <div id="rater-container"></div>
+      <div class="output-box" id="rater-output">No rating submitted yet.</div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { CATEGORIES, BRANDS, MODELS, SPECS, CONDITIONS, OTHER } from './js/catalog.js'
+    import { computeParScore, renderParMeter, renderConditionRater } from './js/market.js'
+    import { US_STATES, STATE_NAME } from './js/states.js'
+
+    // ═══ 1. Category → Brand → Model cascade ═══
+    let selectedCategory = null
+    const catPillsEl = document.getElementById('cat-pills')
+    CATEGORIES.forEach(c => {
+      const pill = document.createElement('div')
+      pill.className = 'pill'
+      pill.textContent = c.label
+      pill.dataset.cat = c.id
+      pill.onclick = () => selectCategory(c.id)
+      catPillsEl.appendChild(pill)
+    })
+
+    function selectCategory(cat) {
+      selectedCategory = cat
+      document.querySelectorAll('#cat-pills .pill').forEach(p => p.classList.toggle('selected', p.dataset.cat === cat))
+
+      const brandSelect = document.getElementById('brand-select')
+      const brandOtherInput = document.getElementById('brand-other-input')
+      brandSelect.style.display = ''
+      brandOtherInput.style.display = 'none'
+      brandOtherInput.value = ''
+      document.getElementById('brand-revert-link').style.display = 'none'
+      brandSelect.innerHTML = '<option value="">Choose brand…</option>'
+      BRANDS[cat].forEach(b => brandSelect.appendChild(new Option(b, b)))
+      brandSelect.appendChild(new Option('Other (not listed)', OTHER))
+      brandSelect.disabled = false
+
+      resetModelField('Choose brand first')
+      renderSpecs(cat)
+      renderCondPills()
+      updateCascadeOutput()
+      document.getElementById('cascade-status').textContent = 'Category selected ✓'
+      document.getElementById('cascade-status').className = 'test-status pass'
+    }
+
+    function resetModelField(placeholder) {
+      const modelSelect = document.getElementById('model-select')
+      const modelOtherInput = document.getElementById('model-other-input')
+      modelSelect.style.display = ''
+      modelOtherInput.style.display = 'none'
+      modelOtherInput.value = ''
+      document.getElementById('model-revert-link').style.display = 'none'
+      modelSelect.innerHTML = `<option value="">${placeholder}</option>`
+      modelSelect.disabled = true
+    }
+
+    document.getElementById('brand-select').addEventListener('change', function () {
+      if (this.value === OTHER) {
+        this.style.display = 'none'
+        document.getElementById('brand-other-input').style.display = ''
+        document.getElementById('brand-revert-link').style.display = ''
+        document.getElementById('brand-other-input').focus()
+
+        const modelSelect = document.getElementById('model-select')
+        modelSelect.style.display = 'none'
+        modelSelect.disabled = true
+        document.getElementById('model-other-input').style.display = ''
+        document.getElementById('model-revert-link').style.display = 'none'
+        updateCascadeOutput()
+        return
+      }
+
+      const brand = this.value
+      if (!brand || !selectedCategory) { resetModelField('Choose brand first'); updateCascadeOutput(); return }
+
+      const modelSelect = document.getElementById('model-select')
+      const modelOtherInput = document.getElementById('model-other-input')
+      modelSelect.style.display = ''
+      modelOtherInput.style.display = 'none'
+      modelOtherInput.value = ''
+      document.getElementById('model-revert-link').style.display = 'none'
+      const models = MODELS[selectedCategory]?.[brand] || []
+      modelSelect.innerHTML = '<option value="">Choose model…</option>'
+      models.forEach(m => modelSelect.appendChild(new Option(m, m)))
+      modelSelect.appendChild(new Option('Other (not listed)', OTHER))
+      modelSelect.disabled = false
+      updateCascadeOutput()
+    })
+
+    document.getElementById('model-select').addEventListener('change', function () {
+      if (this.value === OTHER) {
+        this.style.display = 'none'
+        document.getElementById('model-other-input').style.display = ''
+        document.getElementById('model-revert-link').style.display = ''
+        document.getElementById('model-other-input').focus()
+      }
+      updateCascadeOutput()
+    })
+
+    document.getElementById('brand-other-input').addEventListener('input', updateCascadeOutput)
+    document.getElementById('model-other-input').addEventListener('input', updateCascadeOutput)
+
+    document.getElementById('brand-revert-link').addEventListener('click', (e) => {
+      e.preventDefault()
+      document.getElementById('brand-select').style.display = ''
+      document.getElementById('brand-other-input').style.display = 'none'
+      document.getElementById('brand-other-input').value = ''
+      document.getElementById('brand-revert-link').style.display = 'none'
+      document.getElementById('brand-select').value = ''
+      resetModelField('Choose brand first')
+      updateCascadeOutput()
+    })
+
+    document.getElementById('model-revert-link').addEventListener('click', (e) => {
+      e.preventDefault()
+      document.getElementById('model-select').style.display = ''
+      document.getElementById('model-other-input').style.display = 'none'
+      document.getElementById('model-other-input').value = ''
+      document.getElementById('model-revert-link').style.display = 'none'
+      document.getElementById('model-select').value = ''
+      updateCascadeOutput()
+    })
+
+    function getBrandValue() {
+      const select = document.getElementById('brand-select').value
+      if (select === OTHER) return document.getElementById('brand-other-input').value.trim()
+      return select
+    }
+    function getModelValue() {
+      const select = document.getElementById('model-select').value
+      if (select === OTHER || document.getElementById('model-other-input').style.display !== 'none') {
+        return document.getElementById('model-other-input').value.trim()
+      }
+      return select
+    }
+    function updateCascadeOutput() {
+      const brand = getBrandValue()
+      const model = getModelValue()
+      document.getElementById('cascade-output').textContent =
+        `category: ${selectedCategory || '(none)'}\nbrand: ${brand || '(none)'}\nmodel: ${model || '(none)'}\nwould submit title: "${brand} ${model}"`
+    }
+
+    // ═══ 2. Specs + condition ═══
+    function renderSpecs(cat) {
+      const container = document.getElementById('specs-fields')
+      const fields = SPECS[cat] || []
+      if (fields.length === 0) { container.innerHTML = '<p style="color:var(--pv-text-tertiary);font-size:0.875rem">No optional specs for this category.</p>'; return }
+      let html = ''
+      for (let i = 0; i < fields.length; i += 2) {
+        const pair = fields.slice(i, i + 2)
+        html += `<div class="form-row">`
+        pair.forEach(f => {
+          html += `<div class="fg"><label>${f.label}</label>`
+          if (f.type === 'select') {
+            html += `<select id="spec-${f.id}" onchange="window.__updateSpecsOutput()"><option value="">—</option>${f.options.map(o => `<option value="${o}">${o}</option>`).join('')}</select>`
+          } else {
+            html += `<input type="text" id="spec-${f.id}" placeholder="${f.placeholder || ''}" oninput="window.__updateSpecsOutput()" />`
+          }
+          html += `</div>`
+        })
+        html += `</div>`
+      }
+      container.innerHTML = html
+    }
+
+    function renderCondPills() {
+      const container = document.getElementById('cond-pills')
+      container.innerHTML = ''
+      CONDITIONS.forEach(c => {
+        const pill = document.createElement('div')
+        pill.className = 'pill'
+        pill.textContent = c.label
+        pill.dataset.cond = c.id
+        pill.onclick = () => {
+          document.querySelectorAll('#cond-pills .pill').forEach(p => p.classList.remove('selected'))
+          pill.classList.add('selected')
+          window.__updateSpecsOutput()
+        }
+        container.appendChild(pill)
+      })
+    }
+
+    window.__updateSpecsOutput = () => {
+      if (!selectedCategory) return
+      const fields = SPECS[selectedCategory] || []
+      const specs = {}
+      fields.forEach(f => {
+        const el = document.getElementById(`spec-${f.id}`)
+        if (el && el.value) specs[f.id] = el.value
+      })
+      const cond = document.querySelector('#cond-pills .pill.selected')?.dataset.cond || '(none)'
+      document.getElementById('specs-output').textContent =
+        `category: ${selectedCategory}\nspecs: ${JSON.stringify(specs, null, 2)}\ncondition: ${cond}`
+    }
+
+    // ═══ 3. Par-meter ═══
+    function rerenderParMeter() {
+      const price = Number(document.getElementById('pm-price').value)
+      const avg = Number(document.getElementById('pm-avg').value)
+      const low = Number(document.getElementById('pm-low').value)
+      const high = Number(document.getElementById('pm-high').value)
+      const count = Number(document.getElementById('pm-count').value)
+      renderParMeter(document.getElementById('pm-container'), price, { avg_price: avg, low_price: low, high_price: high, sample_count: count })
+    }
+    ;['pm-price','pm-avg','pm-low','pm-high','pm-count'].forEach(id => {
+      document.getElementById(id).addEventListener('input', rerenderParMeter)
+    })
+    rerenderParMeter()
+
+    // ═══ 4. States ═══
+    const stateSelect = document.getElementById('state-select')
+    US_STATES.forEach(([code, name]) => stateSelect.appendChild(new Option(name, code)))
+    stateSelect.addEventListener('change', () => {
+      document.getElementById('state-output').textContent = stateSelect.value
+        ? `code: ${stateSelect.value}\nname: ${STATE_NAME[stateSelect.value]}`
+        : 'No state selected.'
+    })
+
+    // ═══ 5. Anonymity badge ═══
+    let revealed = false
+    window.toggleReveal = () => {
+      revealed = !revealed
+      document.getElementById('reveal-toggle').classList.toggle('on', revealed)
+      renderBadge()
+    }
+    function renderBadge() {
+      const name = document.getElementById('mock-name').value || 'Anonymous'
+      const role = document.getElementById('mock-role').value
+      const label = role === 'seller' ? 'Seller' : 'Buyer'
+      const state = 'California'
+      const badge = document.getElementById('anon-badge-preview')
+      if (revealed) {
+        badge.className = 'revealed-badge'
+        badge.textContent = `${name} · ${state}`
+      } else {
+        badge.className = 'anon-badge'
+        badge.textContent = `Anonymous ${label} · ${state}`
+      }
+    }
+    document.getElementById('mock-name').addEventListener('input', renderBadge)
+    document.getElementById('mock-role').addEventListener('change', renderBadge)
+    renderBadge()
+
+    // ═══ 6. Buyer condition rating ═══
+    renderConditionRater(document.getElementById('rater-container'), (cond) => {
+      document.getElementById('rater-output').textContent = `Selected: ${cond}`
+    })
+  </script>
+
+</body>
+</html>

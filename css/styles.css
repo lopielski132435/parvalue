@@ -324,3 +324,132 @@ footer {
 .footer-links a { font-size: 0.875rem; color: var(--pv-dark-text-muted); }
 .footer-links a:hover { color: var(--pv-dark-text); }
 .footer-copy { font-size: 0.8125rem; color: var(--pv-dark-text-muted); }
+
+/* ── Par-meter ── */
+.par-meter { width: 100%; }
+
+.par-meter-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.par-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.par-deviation {
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.par-track {
+  position: relative;
+  height: 6px;
+  border-radius: 3px;
+  overflow: visible;
+  display: flex;
+}
+
+.par-fill-below {
+  height: 100%;
+  background: #D1EAE0;
+  border-radius: 3px 0 0 3px;
+}
+
+.par-fill-par {
+  height: 100%;
+  background: #E2E1DB;
+}
+
+.par-fill-above {
+  height: 100%;
+  background: #F3DDD6;
+  border-radius: 0 3px 3px 0;
+}
+
+.par-center-tick {
+  position: absolute;
+  left: 50%;
+  top: -2px;
+  width: 1px;
+  height: 10px;
+  background: var(--pv-border);
+  transform: translateX(-50%);
+}
+
+.par-marker {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.par-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+}
+
+.par-track-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  font-size: 0.6875rem;
+  color: var(--pv-text-tertiary);
+}
+
+.par-sample {
+  margin-top: 6px;
+  font-size: 0.75rem;
+  color: var(--pv-text-tertiary);
+}
+
+.par-no-data {
+  font-size: 0.8125rem;
+  color: var(--pv-text-tertiary);
+  font-style: italic;
+}
+
+/* ── Condition rater (buyer post-purchase) ── */
+.condition-rater-prompt {
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.condition-rater-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.cond-rate-btn {
+  text-align: left;
+  padding: 12px 14px;
+  border: 1px solid var(--pv-border);
+  border-radius: 8px;
+  background: var(--pv-surface);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  transition: border-color 0.15s;
+}
+
+.cond-rate-btn strong {
+  display: block;
+  font-size: 0.875rem;
+  color: var(--pv-ink);
+  margin-bottom: 2px;
+}
+
+.cond-rate-btn span {
+  font-size: 0.75rem;
+  color: var(--pv-text-secondary);
+}
+
+.cond-rate-btn:hover { border-color: var(--pv-green); }
+.cond-rate-btn.selected { border-color: var(--pv-green); background: #F0FAF5; }

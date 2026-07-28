@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Account — Par Value</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    .nav {
+      background: var(--pv-surface);
+      border-bottom: 1px solid var(--pv-border);
+      padding: 0 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 60px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .nav-logo svg { display: block; }
+    .nav-actions { display: flex; align-items: center; gap: 12px; }
+    .nav-link { font-size: 0.875rem; font-weight: 500; color: var(--pv-text-secondary); text-decoration: none; padding: 6px 10px; border-radius: 6px; transition: color 0.15s; }
+    .nav-link:hover { color: var(--pv-ink); text-decoration: none; }
+    .btn-sell { padding: 8px 18px; background: var(--pv-green); color: #fff; border: none; border-radius: 7px; font-size: 0.875rem; font-weight: 600; font-family: var(--font-sans); cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+    .btn-sell:hover { background: var(--pv-green-dark); text-decoration: none; color: #fff; }
+    .nav-user { width: 32px; height: 32px; border-radius: 50%; background: var(--pv-green); color: #fff; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; font-family: var(--font-sans); }
+
+    .page-wrap { max-width: 960px; margin: 0 auto; padding: 48px 24px 80px; }
+
+    .account-header { margin-bottom: 40px; }
+    .account-header h1 { font-family: var(--font-display); font-size: 1.75rem; font-weight: 600; color: var(--pv-ink); margin-bottom: 4px; }
+    .account-header p { font-size: 0.9375rem; color: var(--pv-text-secondary); }
+
+    .section-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.12em; color: var(--pv-text-tertiary); margin-bottom: 16px; }
+
+    .listings-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
+
+    .listing-card { background: var(--pv-surface); border: 1px solid var(--pv-border); border-radius: 12px; overflow: hidden; cursor: pointer; transition: box-shadow 0.15s; text-decoration: none; display: block; color: inherit; }
+    .listing-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); text-decoration: none; color: inherit; }
+
+    .card-photo { width: 100%; aspect-ratio: 4/3; background: var(--pv-bg); overflow: hidden; position: relative; }
+    .card-photo img { width: 100%; height: 100%; object-fit: cover; }
+    .card-photo-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: var(--pv-border); }
+
+    .card-body { padding: 14px 16px; }
+    .card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
+    .card-title { font-size: 0.9375rem; font-weight: 600; color: var(--pv-ink); line-height: 1.35; }
+    .card-price { font-size: 0.9375rem; font-weight: 600; color: var(--pv-ink); white-space: nowrap; }
+    .card-meta { font-size: 0.8125rem; color: var(--pv-text-secondary); margin-bottom: 10px; }
+
+    .status-pill { display: inline-block; font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; padding: 3px 8px; border-radius: 4px; }
+    .status-pill.active       { background: #D1FAE5; color: #065F46; }
+    .status-pill.under_review { background: #FEF3C7; color: #92400E; }
+    .status-pill.draft        { background: #F3F4F6; color: #6B7280; }
+    .status-pill.archived     { background: #FEE2E2; color: #991B1B; }
+    .status-pill.sold         { background: #EDE9FE; color: #5B21B6; }
+
+    .empty-state { padding: 60px 0; text-align: center; color: var(--pv-text-secondary); }
+    .empty-state p { margin-bottom: 16px; }
+    .empty-state a { display: inline-flex; align-items: center; gap: 6px; padding: 10px 20px; background: var(--pv-green); color: #fff; border-radius: 8px; font-weight: 600; font-size: 0.9375rem; text-decoration: none; }
+    .empty-state a:hover { background: var(--pv-green-dark); }
+
+    /* Edit Profile Modal */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 300; align-items: center; justify-content: center; padding: 24px; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: var(--pv-surface); border-radius: 16px; width: 100%; max-width: 480px; overflow: hidden; }
+    .modal-header { padding: 20px 24px 0; display: flex; align-items: center; justify-content: space-between; }
+    .modal-header h2 { font-family: var(--font-display); font-size: 1.25rem; font-weight: 600; color: var(--pv-ink); }
+    .modal-close { background: none; border: none; cursor: pointer; color: var(--pv-text-tertiary); padding: 4px; font-size: 1.25rem; line-height: 1; }
+    .modal-close:hover { color: var(--pv-ink); }
+    .modal-body { padding: 20px 24px 24px; display: flex; flex-direction: column; gap: 14px; }
+    .fg { display: flex; flex-direction: column; gap: 5px; }
+    .fg label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--pv-text-tertiary); }
+    .fg input, .fg select { width: 100%; padding: 10px 13px; border: 1px solid var(--pv-border); border-radius: 8px; font-size: 0.9375rem; font-family: var(--font-sans); background: var(--pv-surface); color: var(--pv-ink); outline: none; transition: border-color 0.15s; }
+    .fg input:focus, .fg select:focus { border-color: var(--pv-green); }
+    .fg-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .modal-footer { padding: 0 24px 24px; display: flex; gap: 10px; justify-content: flex-end; }
+    .btn-cancel { padding: 10px 18px; background: transparent; border: 1px solid var(--pv-border); border-radius: 8px; font-size: 0.875rem; font-weight: 500; font-family: var(--font-sans); cursor: pointer; color: var(--pv-text-secondary); }
+    .btn-cancel:hover { border-color: var(--pv-ink); color: var(--pv-ink); }
+    .btn-save { padding: 10px 22px; background: var(--pv-green); color: #fff; border: none; border-radius: 8px; font-size: 0.875rem; font-weight: 600; font-family: var(--font-sans); cursor: pointer; }
+    .btn-save:hover { background: var(--pv-green-dark); }
+    .save-msg { font-size: 0.8125rem; color: var(--pv-green-dark); display: none; align-self: center; }
+  </style>
+</head>
+<body>
+
+  <nav class="nav">
+    <a class="nav-logo" href="browse.html">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 100" height="26">
+        <text x="224" y="54" text-anchor="middle" style="font-family:'Playfair Display',Georgia,serif;font-size:38px;font-weight:500;letter-spacing:8px;fill:#1A1A18">PAR VALUE</text>
+        <line x1="120" y1="74" x2="320" y2="74" stroke="#1A7F5A" stroke-width="2"/>
+      </svg>
+    </a>
+    <div class="nav-actions">
+      <a class="nav-link" href="browse.html">Browse</a>
+      <a class="nav-link" href="messages.html">Messages</a>
+      <a class="nav-link" href="watchlist.html">Watchlist</a>
+      <a class="btn-sell" href="sell.html">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        List a club
+      </a>
+      <button class="nav-user" id="nav-user-btn">—</button>
+    </div>
+  </nav>
+
+  <!-- Edit Profile Modal -->
+  <div class="modal-overlay" id="profile-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Edit Profile</h2>
+        <button class="modal-close" onclick="closeModal()">&#x2715;</button>
+      </div>
+      <div class="modal-body">
+        <div class="fg">
+          <label>Full Name</label>
+          <input type="text" id="edit-name" placeholder="Your name" />
+        </div>
+        <div class="fg">
+          <label>Email</label>
+          <input type="email" id="edit-email" placeholder="you@example.com" />
+        </div>
+        <div class="fg-row">
+          <div class="fg">
+            <label>State</label>
+            <select id="edit-state">
+              <option value="">Select state</option>
+              <option>Alabama</option><option>Alaska</option><option>Arizona</option><option>Arkansas</option>
+              <option>California</option><option>Colorado</option><option>Connecticut</option><option>Delaware</option>
+              <option>Florida</option><option>Georgia</option><option>Hawaii</option><option>Idaho</option>
+              <option>Illinois</option><option>Indiana</option><option>Iowa</option><option>Kansas</option>
+              <option>Kentucky</option><option>Louisiana</option><option>Maine</option><option>Maryland</option>
+              <option>Massachusetts</option><option>Michigan</option><option>Minnesota</option><option>Mississippi</option>
+              <option>Missouri</option><option>Montana</option><option>Nebraska</option><option>Nevada</option>
+              <option>New Hampshire</option><option>New Jersey</option><option>New Mexico</option><option>New York</option>
+              <option>North Carolina</option><option>North Dakota</option><option>Ohio</option><option>Oklahoma</option>
+              <option>Oregon</option><option>Pennsylvania</option><option>Rhode Island</option><option>South Carolina</option>
+              <option>South Dakota</option><option>Tennessee</option><option>Texas</option><option>Utah</option>
+              <option>Vermont</option><option>Virginia</option><option>Washington</option><option>West Virginia</option>
+              <option>Wisconsin</option><option>Wyoming</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label>Seller Type</label>
+            <select id="edit-seller-type">
+              <option value="individual">Individual</option>
+              <option value="dealer">Dealer</option>
+            </select>
+          </div>
+        </div>
+        <span class="save-msg" id="save-msg">Saved!</span>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+        <button class="btn-save" onclick="saveProfile()">Save changes</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-wrap">
+    <div class="account-header">
+      <h1 id="account-name">My Account</h1>
+      <p id="account-email" style="color:var(--pv-text-secondary);font-size:0.9375rem"></p>
+    </div>
+
+    <div class="section-label">My Listings</div>
+    <div id="listings-area">
+      <p style="color:var(--pv-text-tertiary);padding:40px 0">Loading your listings...</p>
+    </div>
+  </div>
+
+  <script type="module">
+    import { supabase } from './js/supabase.js'
+    import { initNav } from './js/nav.js'
+
+    const CONDITION_LABELS = { new: 'New', like_new: 'Used – Like New', good: 'Used – Good', fair: 'Used – Fair' }
+    const STATUS_LABELS = { active: 'Active', under_review: 'Pending Review', draft: 'Draft', archived: 'Rejected', sold: 'Sold' }
+
+    let currentSession = null
+    let currentProfile = null
+
+    const navResult = await initNav(supabase)
+    if (!navResult?.session) {
+      window.location.href = 'login.html?next=account.html'
+    }
+
+    currentSession = navResult.session
+    currentProfile = navResult.profile
+
+    document.getElementById('account-name').textContent = currentProfile?.full_name || 'My Account'
+    document.getElementById('account-email').textContent = currentSession.user.email
+
+    // Load listings
+    const { data: listings } = await supabase
+      .from('listings')
+      .select('id, listing_number, title, brand, model, category, condition, price, status, created_at, listing_images(url, position)')
+      .eq('user_id', currentSession.user.id)
+      .order('created_at', { ascending: false })
+
+    const area = document.getElementById('listings-area')
+
+    if (!listings?.length) {
+      area.innerHTML = `
+        <div class="empty-state">
+          <p>You haven't listed any clubs yet.</p>
+          <a href="sell.html">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            List your first club
+          </a>
+        </div>`
+    } else {
+      const grid = document.createElement('div')
+      grid.className = 'listings-grid'
+
+      for (const l of listings) {
+        const photos = (l.listing_images || []).sort((a, b) => a.position - b.position)
+        const thumb = photos[0]?.url
+        const card = document.createElement('a')
+        card.href = `listing.html?id=${l.id}`
+        card.className = 'listing-card'
+        card.innerHTML = `
+          <div class="card-photo">
+            ${thumb
+              ? `<img src="${thumb}" alt="${l.brand} ${l.model}" loading="lazy" />`
+              : `<div class="card-photo-placeholder"><svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect x="4" y="6" width="24" height="20" rx="3" stroke="currentColor" stroke-width="1.5"/><circle cx="16" cy="16" r="5" stroke="currentColor" stroke-width="1.5"/></svg></div>`}
+          </div>
+          <div class="card-body">
+            <div class="card-top">
+              <div class="card-title">${l.brand} ${l.model}</div>
+              <div class="card-price">$${Number(l.price).toLocaleString()}</div>
+            </div>
+            <div class="card-meta">${CONDITION_LABELS[l.condition] || l.condition}</div>
+            <span class="status-pill ${l.status}">${STATUS_LABELS[l.status] || l.status}</span>
+          </div>`
+        grid.appendChild(card)
+      }
+
+      area.innerHTML = ''
+      area.appendChild(grid)
+    }
+
+    // ── Edit Profile Modal ───────────────────────────────────
+    window.openModal = () => {
+      document.getElementById('edit-name').value = currentProfile?.full_name || ''
+      document.getElementById('edit-email').value = currentSession.user.email || ''
+      document.getElementById('edit-state').value = currentProfile?.state || ''
+      document.getElementById('edit-seller-type').value = currentProfile?.seller_type || 'individual'
+      document.getElementById('save-msg').style.display = 'none'
+      document.getElementById('profile-modal').classList.add('open')
+    }
+
+    window.closeModal = () => {
+      document.getElementById('profile-modal').classList.remove('open')
+      window.location.hash = ''
+    }
+
+    window.saveProfile = async () => {
+      const name = document.getElementById('edit-name').value.trim()
+      const email = document.getElementById('edit-email').value.trim()
+      const state = document.getElementById('edit-state').value
+      const sellerType = document.getElementById('edit-seller-type').value
+      const saveBtn = document.querySelector('.btn-save')
+
+      saveBtn.textContent = 'Saving...'
+      saveBtn.disabled = true
+
+      // Update profile table
+      await supabase.from('profiles').update({ full_name: name, state, seller_type: sellerType }).eq('id', currentSession.user.id)
+
+      // Update email if changed
+      if (email && email !== currentSession.user.email) {
+        await supabase.auth.updateUser({ email })
+      }
+
+      // Refresh profile in memory
+      const { data: updated } = await supabase.from('profiles').select('full_name, state, seller_type, is_admin').eq('id', currentSession.user.id).maybeSingle()
+      currentProfile = updated
+
+      document.getElementById('account-name').textContent = name || 'My Account'
+      document.getElementById('save-msg').style.display = 'inline'
+      saveBtn.textContent = 'Save changes'
+      saveBtn.disabled = false
+    }
+
+    // Close modal on overlay click
+    document.getElementById('profile-modal').addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) closeModal()
+    })
+
+    // Open edit modal if #edit-profile hash present (must be after openModal is defined)
+    if (window.location.hash === '#edit-profile') window.openModal()
+  </script>
+
+</body>
+</html>

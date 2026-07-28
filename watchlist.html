@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Watchlist — Par Value</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    .nav {
+      background: var(--pv-surface);
+      border-bottom: 1px solid var(--pv-border);
+      padding: 0 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 60px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .nav-logo svg { display: block; }
+    .nav-actions { display: flex; align-items: center; gap: 12px; }
+    .nav-link { font-size: 0.875rem; font-weight: 500; color: var(--pv-text-secondary); text-decoration: none; padding: 6px 10px; border-radius: 6px; transition: color 0.15s; }
+    .nav-link:hover { color: var(--pv-ink); text-decoration: none; }
+    .nav-link.active { color: var(--pv-ink); }
+    .btn-sell { padding: 8px 18px; background: var(--pv-green); color: #fff; border: none; border-radius: 7px; font-size: 0.875rem; font-weight: 600; font-family: var(--font-sans); cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+    .btn-sell:hover { background: var(--pv-green-dark); text-decoration: none; color: #fff; }
+    .nav-user { width: 32px; height: 32px; border-radius: 50%; background: var(--pv-border); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; color: var(--pv-text-secondary); font-family: var(--font-sans); }
+
+    .page-wrap { max-width: 1100px; margin: 0 auto; padding: 48px 24px 80px; }
+
+    .page-header { margin-bottom: 32px; }
+    .page-header h1 { font-family: var(--font-display); font-size: 1.75rem; font-weight: 600; color: var(--pv-ink); margin-bottom: 4px; }
+    .page-header p { font-size: 0.9375rem; color: var(--pv-text-secondary); }
+
+    .listings-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 20px;
+    }
+
+    .listing-card {
+      background: var(--pv-surface);
+      border: 1px solid var(--pv-border);
+      border-radius: 12px;
+      overflow: hidden;
+      transition: box-shadow 0.15s, border-color 0.15s;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      text-decoration: none;
+      color: inherit;
+    }
+    .listing-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-color: #CCC; text-decoration: none; }
+
+    .card-photo { aspect-ratio: 4/3; background: var(--pv-paper); position: relative; overflow: hidden; }
+    .card-photo img { width: 100%; height: 100%; object-fit: cover; }
+    .card-photo-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: var(--pv-border); }
+    .card-photo-placeholder svg { width: 48px; height: 48px; }
+
+    .card-condition {
+      position: absolute; top: 10px; left: 10px;
+      padding: 3px 8px; background: rgba(255,255,255,0.92); border-radius: 5px;
+      font-size: 0.6875rem; font-weight: 600; color: var(--pv-text-secondary); backdrop-filter: blur(4px);
+    }
+
+    .card-unsave {
+      position: absolute; top: 8px; right: 8px;
+      width: 30px; height: 30px; border-radius: 50%;
+      background: rgba(255,255,255,0.92); border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--pv-above-par); transition: opacity 0.15s; backdrop-filter: blur(4px);
+    }
+    .card-unsave:hover { opacity: 0.7; }
+
+    .card-body { padding: 14px 16px 16px; flex: 1; display: flex; flex-direction: column; gap: 6px; }
+    .card-brand { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--pv-text-tertiary); }
+    .card-model { font-size: 1rem; font-weight: 600; color: var(--pv-ink); }
+    .card-footer { display: flex; align-items: center; justify-content: space-between; margin-top: auto; padding-top: 8px; }
+    .card-price { font-size: 1rem; font-weight: 600; color: var(--pv-ink); }
+    .card-location { font-size: 0.8125rem; color: var(--pv-text-tertiary); display: flex; align-items: center; gap: 3px; }
+
+    .empty-state { padding: 80px 0; text-align: center; }
+    .empty-state h2 { font-family: var(--font-display); font-size: 1.375rem; color: var(--pv-ink); margin-bottom: 8px; }
+    .empty-state p { color: var(--pv-text-secondary); margin-bottom: 20px; }
+    .empty-state a { display: inline-flex; align-items: center; gap: 6px; padding: 10px 20px; background: var(--pv-green); color: #fff; border-radius: 8px; font-weight: 600; text-decoration: none; }
+    .empty-state a:hover { background: var(--pv-green-dark); }
+
+    .login-prompt { padding: 80px 0; text-align: center; }
+    .login-prompt h2 { font-family: var(--font-display); font-size: 1.375rem; color: var(--pv-ink); margin-bottom: 8px; }
+    .login-prompt p { color: var(--pv-text-secondary); margin-bottom: 20px; }
+    .login-prompt a { display: inline-flex; align-items: center; padding: 10px 20px; background: var(--pv-green); color: #fff; border-radius: 8px; font-weight: 600; text-decoration: none; }
+  </style>
+</head>
+<body>
+
+  <nav class="nav">
+    <a class="nav-logo" href="browse.html">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 100" height="26">
+        <text x="224" y="54" text-anchor="middle" style="font-family:'Playfair Display',Georgia,serif;font-size:38px;font-weight:500;letter-spacing:8px;fill:#1A1A18">PAR VALUE</text>
+        <line x1="120" y1="74" x2="320" y2="74" stroke="#1A7F5A" stroke-width="2"/>
+      </svg>
+    </a>
+    <div class="nav-actions">
+      <a class="nav-link" href="browse.html">Browse</a>
+      <a class="nav-link" href="messages.html">Messages</a>
+      <a class="nav-link active" href="watchlist.html">Watchlist</a>
+      <a class="btn-sell" href="sell.html">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        List a club
+      </a>
+      <button class="nav-user" id="nav-user-btn">—</button>
+    </div>
+  </nav>
+
+  <div class="page-wrap">
+    <div class="page-header">
+      <h1>Watchlist</h1>
+      <p>Clubs you're tracking. You'll be notified when the price drops or interest spikes.</p>
+    </div>
+    <div id="content"><p style="color:var(--pv-text-tertiary);padding:40px 0">Loading...</p></div>
+  </div>
+
+  <script type="module">
+    import { supabase } from './js/supabase.js'
+    import { initNav } from './js/nav.js'
+
+    const CONDITION_LABELS = { new: 'New', like_new: 'Used – Like New', good: 'Used – Good', fair: 'Used – Fair' }
+
+    function catIcon(cat) {
+      const icons = {
+        wood:   `<svg viewBox="0 0 44 44" fill="none"><path d="M6 28 C6 21 11 16 20 15 C29 14 36 17 37 22 C38 27 34 32 26 33 C18 34 6 35 6 28 Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><line x1="33" y1="16" x2="40" y2="4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+        iron:   `<svg viewBox="0 0 44 44" fill="none"><path d="M8 22 L30 16 L32 30 L10 34 Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><line x1="30" y1="16" x2="36" y2="4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+        wedge:  `<svg viewBox="0 0 44 44" fill="none"><path d="M6 20 L26 12 L30 32 L8 36 Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><line x1="26" y1="12" x2="31" y2="3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+        putter: `<svg viewBox="0 0 44 44" fill="none"><rect x="6" y="28" width="28" height="9" rx="1.5" stroke="currentColor" stroke-width="1.5"/><line x1="30" y1="28" x2="34" y2="6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+      }
+      return icons[cat] || icons.iron
+    }
+
+    const content = document.getElementById('content')
+
+    const navResult = await initNav(supabase)
+    const session = navResult?.session ?? null
+
+    if (!session) {
+      content.innerHTML = `
+        <div class="login-prompt">
+          <h2>Sign in to view your watchlist</h2>
+          <p>Save clubs you're interested in and get notified when prices change.</p>
+          <a href="login.html?next=watchlist.html">Sign in</a>
+        </div>`
+      return
+    }
+
+    // Load watchlist
+    const { data: rows, error } = await supabase
+      .from('watchlist')
+      .select(`
+        id,
+        listing_id,
+        created_at,
+        listings (
+          id, brand, model, category, condition, price, location,
+          listing_images (url, position)
+        )
+      `)
+      .eq('user_id', session.user.id)
+      .order('created_at', { ascending: false })
+
+    if (error || !rows?.length) {
+      content.innerHTML = `
+        <div class="empty-state">
+          <h2>Your watchlist is empty</h2>
+          <p>Tap the heart on any listing to save it here.</p>
+          <a href="browse.html">Browse clubs</a>
+        </div>`
+      return
+    }
+
+    // Filter out rows where the listing was deleted
+    const active = rows.filter(r => r.listings)
+
+    if (!active.length) {
+      content.innerHTML = `
+        <div class="empty-state">
+          <h2>No active listings saved</h2>
+          <p>The clubs you saved may have been sold or removed.</p>
+          <a href="browse.html">Browse clubs</a>
+        </div>`
+      return
+    }
+
+    const grid = document.createElement('div')
+    grid.className = 'listings-grid'
+
+    for (const row of active) {
+      const l = row.listings
+      const images = [...(l.listing_images || [])].sort((a, b) => a.position - b.position)
+      const thumb = images[0]?.url
+
+      const card = document.createElement('div')
+      card.style.position = 'relative'
+      card.innerHTML = `
+        <a class="listing-card" href="listing.html?id=${l.id}">
+          <div class="card-photo">
+            ${thumb
+              ? `<img src="${thumb}" alt="${l.brand} ${l.model}" loading="lazy" />`
+              : `<div class="card-photo-placeholder">${catIcon(l.category)}</div>`}
+            <span class="card-condition">${CONDITION_LABELS[l.condition] || l.condition}</span>
+            <button class="card-unsave" data-wl="${row.id}" data-listing="${l.id}" onclick="unsave(event, this)" title="Remove from watchlist">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor" stroke="currentColor" stroke-width="1.4"><path d="M7 12S2 8.5 2 5a3 3 0 015-2.24A3 3 0 0112 5c0 3.5-5 7-5 7z"/></svg>
+            </button>
+          </div>
+          <div class="card-body">
+            <div class="card-brand">${l.brand}</div>
+            <div class="card-model">${l.model}</div>
+            <div class="card-footer">
+              <span class="card-price">$${Number(l.price).toLocaleString('en-US', { maximumFractionDigits: 0 })}</span>
+              ${l.location ? `<span class="card-location">
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="5" cy="4" r="2" stroke="currentColor" stroke-width="1.2"/><path d="M5 9 C5 9 2 6.5 2 4a3 3 0 016 0C8 6.5 5 9 5 9Z" stroke="currentColor" stroke-width="1.2"/></svg>
+                ${l.location}
+              </span>` : ''}
+            </div>
+          </div>
+        </a>`
+      grid.appendChild(card)
+    }
+
+    content.innerHTML = ''
+    content.appendChild(grid)
+
+    window.unsave = async (e, btn) => {
+      e.preventDefault()
+      e.stopPropagation()
+      const wlId = btn.dataset.wl
+      await supabase.from('watchlist').delete().eq('id', wlId)
+      btn.closest('div[style]').remove()
+      if (!document.querySelector('.listing-card')) {
+        content.innerHTML = `
+          <div class="empty-state">
+            <h2>Your watchlist is empty</h2>
+            <p>Tap the heart on any listing to save it here.</p>
+            <a href="browse.html">Browse clubs</a>
+          </div>`
+      }
+    }
+  </script>
+
+</body>
+</html>

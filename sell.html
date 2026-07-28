@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create listing — Par Value</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    body { background: var(--pv-bg); color: var(--pv-ink); }
+
+    .sell-header {
+      border-bottom: 1px solid var(--pv-border);
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--pv-surface);
+    }
+
+    .sell-header a {
+      font-size: 0.875rem;
+      color: var(--pv-text-secondary);
+      text-decoration: none;
+    }
+
+    .sell-header a:hover { color: var(--pv-ink); }
+
+    .sell-header .logo {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .sell-wrap {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
+    }
+
+    .sell-wrap h1 {
+      font-family: var(--font-display);
+      font-size: 1.75rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .sell-wrap > p {
+      color: var(--pv-text-secondary);
+      font-size: 0.9375rem;
+      margin-bottom: 40px;
+    }
+
+    .form-section {
+      background: var(--pv-surface);
+      border: 1px solid var(--pv-border);
+      border-radius: 12px;
+      padding: 28px;
+      margin-bottom: 20px;
+    }
+
+    .form-section h2 {
+      font-family: var(--font-display);
+      font-size: 1.0625rem;
+      font-weight: 600;
+      margin-bottom: 20px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--pv-border);
+    }
+
+    .fg { margin-bottom: 18px; }
+    .fg:last-child { margin-bottom: 0; }
+
+    .fg label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--pv-text-tertiary);
+      margin-bottom: 7px;
+    }
+
+    .fg label .req { color: var(--pv-green); margin-left: 2px; }
+
+    .fg input, .fg select, .fg textarea {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1px solid var(--pv-border);
+      border-radius: 8px;
+      font-size: 0.9375rem;
+      font-family: var(--font-sans);
+      background: var(--pv-surface);
+      color: var(--pv-ink);
+      outline: none;
+      transition: border-color 0.15s;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+
+    .fg select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236B6A64' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 36px;
+    }
+
+    .fg input:focus, .fg select:focus, .fg textarea:focus { border-color: var(--pv-green); }
+    .fg select:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    .fg textarea { resize: vertical; min-height: 100px; line-height: 1.6; }
+
+    .fg .hint { font-size: 0.8125rem; color: var(--pv-text-tertiary); margin-top: 5px; }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+
+    /* Category pills */
+    .category-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 0;
+    }
+
+    .cat-pill {
+      border: 1px solid var(--pv-border);
+      border-radius: 8px;
+      padding: 14px 10px;
+      cursor: pointer;
+      text-align: center;
+      transition: border-color 0.15s, background 0.15s;
+      user-select: none;
+    }
+
+    .cat-pill:hover { border-color: var(--pv-green); }
+
+    .cat-pill.selected {
+      border-color: var(--pv-green);
+      background: #F0FAF5;
+    }
+
+    .cat-pill .cat-icon { width: 36px; height: 36px; margin: 0 auto 8px; color: var(--pv-text-secondary); }
+    .cat-pill .cat-icon svg { width: 100%; height: 100%; }
+    .cat-pill.selected .cat-icon { color: var(--pv-green); }
+    .cat-pill strong { display: block; font-size: 0.875rem; font-weight: 600; color: var(--pv-ink); }
+
+    /* Condition selector */
+    .condition-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .cond-pill {
+      border: 1px solid var(--pv-border);
+      border-radius: 8px;
+      padding: 10px 8px;
+      cursor: pointer;
+      text-align: center;
+      transition: border-color 0.15s, background 0.15s;
+      user-select: none;
+    }
+
+    .cond-pill:hover { border-color: var(--pv-green); }
+    .cond-pill.selected { border-color: var(--pv-green); background: #F0FAF5; }
+
+    .cond-pill strong { display: block; font-size: 0.8125rem; font-weight: 600; color: var(--pv-ink); margin-bottom: 2px; }
+    .cond-pill span { font-size: 0.75rem; color: var(--pv-text-secondary); }
+
+    /* Advanced options toggle */
+    .advanced-toggle {
+      display: none;
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid var(--pv-border);
+    }
+    .advanced-toggle.visible { display: block; }
+    .advanced-toggle-btn {
+      background: none;
+      border: none;
+      padding: 0;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--pv-green);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-sans);
+    }
+    .advanced-toggle-btn:hover { opacity: 0.8; }
+    .advanced-toggle-btn .adv-arrow {
+      display: inline-block;
+      transition: transform 0.2s;
+      font-style: normal;
+    }
+    .advanced-toggle-btn.open .adv-arrow { transform: rotate(90deg); }
+    #advanced-fields { display: none; margin-top: 18px; }
+
+    /* Price input */
+    .price-input-wrap { position: relative; }
+    .price-input-wrap span {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--pv-text-secondary);
+      font-size: 0.9375rem;
+      pointer-events: none;
+    }
+    .price-input-wrap input { padding-left: 26px; }
+
+    /* Photo upload */
+    .photo-upload {
+      border: 2px dashed var(--pv-border);
+      border-radius: 10px;
+      padding: 32px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+
+    .photo-upload:hover { border-color: var(--pv-green); }
+    .photo-upload input { display: none; }
+
+    .photo-upload .upload-icon {
+      width: 40px;
+      height: 40px;
+      background: var(--pv-bg);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 12px;
+    }
+
+    .photo-upload p { font-size: 0.9375rem; color: var(--pv-text-secondary); margin-bottom: 4px; }
+    .photo-upload small { font-size: 0.8125rem; color: var(--pv-text-tertiary); }
+
+    .photo-previews {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .photo-thumb {
+      aspect-ratio: 1;
+      border-radius: 8px;
+      overflow: hidden;
+      position: relative;
+      border: 1px solid var(--pv-border);
+    }
+
+    .photo-thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+    .photo-thumb .remove-photo {
+      position: absolute;
+      top: 4px; right: 4px;
+      width: 20px; height: 20px;
+      background: rgba(0,0,0,0.55);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+
+    /* Submit area */
+    .submit-area {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-top: 32px;
+    }
+
+    .btn-primary {
+      padding: 13px 28px;
+      background: var(--pv-green);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      font-family: var(--font-sans);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .btn-primary:hover { background: var(--pv-green-dark); }
+    .btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
+
+    .btn-secondary {
+      padding: 13px 20px;
+      background: transparent;
+      color: var(--pv-text-secondary);
+      border: 1px solid var(--pv-border);
+      border-radius: 8px;
+      font-size: 0.9375rem;
+      font-weight: 500;
+      font-family: var(--font-sans);
+      cursor: pointer;
+    }
+
+    .btn-secondary:hover { border-color: var(--pv-ink); color: var(--pv-ink); }
+
+    .error-msg {
+      background: #FEF2F2;
+      border: 1px solid #FECACA;
+      color: #991B1B;
+      font-size: 0.875rem;
+      padding: 10px 14px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .success-msg {
+      background: #F0FAF5;
+      border: 1px solid #6EE7B7;
+      color: #065F46;
+      font-size: 0.875rem;
+      padding: 10px 14px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    /* Verification box */
+    .verify-box {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+      background: #F0FAF5;
+      border: 1px solid #6EE7B7;
+      border-radius: 10px;
+      padding: 18px 20px;
+    }
+    .verify-code-wrap { flex-shrink: 0; text-align: center; }
+    .verify-label { font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--pv-green); margin-bottom: 6px; }
+    .verify-code {
+      font-size: 2rem;
+      font-weight: 700;
+      font-family: var(--font-mono, monospace);
+      letter-spacing: 0.2em;
+      color: var(--pv-ink);
+      background: #fff;
+      border: 1px solid #6EE7B7;
+      border-radius: 8px;
+      padding: 8px 16px;
+      min-width: 120px;
+    }
+    .verify-instructions { font-size: 0.875rem; color: var(--pv-text-secondary); line-height: 1.6; margin: 0; }
+
+    @media (max-width: 600px) {
+      .category-grid { grid-template-columns: repeat(2, 1fr); }
+      .condition-grid { grid-template-columns: repeat(2, 1fr); }
+      .form-row, .form-row-3 { grid-template-columns: 1fr; }
+      .photo-previews { grid-template-columns: repeat(3, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="sell-header">
+    <a href="browse.html">← Browse</a>
+    <div class="logo">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 100" height="28">
+        <text x="224" y="54" text-anchor="middle" style="font-family:'Playfair Display',Georgia,serif;font-size:38px;font-weight:500;letter-spacing:8px;fill:#1A1A18">PAR VALUE</text>
+        <line x1="120" y1="74" x2="320" y2="74" stroke="#1A7F5A" stroke-width="2"/>
+      </svg>
+    </div>
+    <div></div>
+  </header>
+
+  <div class="sell-wrap">
+    <h1>List your club</h1>
+    <p>Fill in the details below and your listing will go live immediately.</p>
+
+    <div class="error-msg" id="error"></div>
+    <div class="success-msg" id="success"></div>
+
+    <!-- 1. Category -->
+    <div class="form-section">
+      <h2>Category</h2>
+      <div class="category-grid">
+        <div class="cat-pill" data-cat="wood" onclick="selectCategory('wood')">
+          <div class="cat-icon">
+            <!-- Driver: large rounded head, angled hosel -->
+            <svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M6 28 C6 21 11 16 20 15 C29 14 36 17 37 22 C38 27 34 32 26 33 C18 34 6 35 6 28 Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+              <line x1="33" y1="16" x2="40" y2="4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <strong>Woods</strong>
+        </div>
+        <div class="cat-pill" data-cat="iron" onclick="selectCategory('iron')">
+          <div class="cat-icon">
+            <!-- Iron: angled blade with hosel -->
+            <svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M8 22 L30 16 L32 30 L10 34 Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+              <line x1="30" y1="16" x2="36" y2="4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <line x1="10" y1="34" x2="32" y2="30" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.4"/>
+            </svg>
+          </div>
+          <strong>Irons</strong>
+        </div>
+        <div class="cat-pill" data-cat="wedge" onclick="selectCategory('wedge')">
+          <div class="cat-icon">
+            <!-- Wedge: wider sole, more loft, shorter hosel -->
+            <svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M6 20 L26 12 L30 32 L8 36 Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+              <line x1="26" y1="12" x2="31" y2="3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <line x1="8" y1="36" x2="30" y2="32" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.4"/>
+            </svg>
+          </div>
+          <strong>Wedges</strong>
+        </div>
+        <div class="cat-pill" data-cat="putter" onclick="selectCategory('putter')">
+          <div class="cat-icon">
+            <!-- Blade putter: rectangular head, vertical hosel -->
+            <svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="6" y="28" width="28" height="9" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+              <line x1="30" y1="28" x2="34" y2="6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <strong>Putters</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Brand & Model -->
+    <div class="form-section">
+      <h2>Club details</h2>
+
+      <div class="form-row">
+        <div class="fg">
+          <label>Brand <span class="req">*</span></label>
+          <select id="brand-select" disabled>
+            <option value="">Select category first</option>
+          </select>
+          <div id="brand-other-wrap" style="display:none;margin-top:8px">
+            <input type="text" id="brand-other-input" placeholder="Enter brand name" />
+          </div>
+        </div>
+        <div class="fg">
+          <label>Model <span class="req">*</span></label>
+          <input type="text" id="model-input" placeholder="e.g. Stealth 2 Plus Driver" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="fg">
+          <label>Year</label>
+          <select id="year-select">
+            <option value="">Unknown / N/A</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label>Hand <span class="req">*</span></label>
+          <select id="hand-select">
+            <option value="right">Right-handed</option>
+            <option value="left">Left-handed</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Advanced options (shown after category is selected) -->
+      <div class="advanced-toggle" id="advanced-toggle">
+        <button class="advanced-toggle-btn" id="advanced-btn" onclick="toggleAdvanced()">
+          <i class="adv-arrow">›</i> Advanced options
+        </button>
+        <div id="advanced-fields"></div>
+      </div>
+    </div>
+
+    <!-- 3. Condition -->
+    <div class="form-section">
+      <h2>Condition</h2>
+      <div class="condition-grid">
+        <div class="cond-pill" data-cond="new" onclick="selectCondition('new')">
+          <strong>New</strong>
+          <span>Never used, original packaging</span>
+        </div>
+        <div class="cond-pill selected" data-cond="like_new" onclick="selectCondition('like_new')">
+          <strong>Used – Like New</strong>
+          <span>Used once or twice, no marks</span>
+        </div>
+        <div class="cond-pill" data-cond="good" onclick="selectCondition('good')">
+          <strong>Used – Good</strong>
+          <span>Normal play wear</span>
+        </div>
+        <div class="cond-pill" data-cond="fair" onclick="selectCondition('fair')">
+          <strong>Used – Fair</strong>
+          <span>Heavier use, still functional</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. Ownership verification -->
+    <div class="form-section">
+      <h2>Ownership verification</h2>
+      <div class="verify-box">
+        <div class="verify-code-wrap">
+          <p class="verify-label">Your verification code</p>
+          <div class="verify-code" id="verify-code-display">—</div>
+        </div>
+        <p class="verify-instructions">Write this 5-digit code on a piece of paper and include it in at least one photo with the club. This confirms you have the club in hand.</p>
+      </div>
+      <div class="fg" style="margin-top:16px">
+        <label>Verification photo <span class="req">*</span></label>
+        <div class="photo-upload" onclick="document.getElementById('verify-photo-input').click()">
+          <input type="file" id="verify-photo-input" accept="image/*" />
+          <div class="upload-icon">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M10 13V3m0 0L7 6m3-3l3 3" stroke="#6B6A64" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M3 13v3a1 1 0 001 1h12a1 1 0 001-1v-3" stroke="#6B6A64" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <p>Upload a photo showing the code with the club</p>
+          <small>JPEG, PNG, HEIC · Max 10MB</small>
+        </div>
+        <div id="verify-photo-preview" style="margin-top:10px"></div>
+      </div>
+    </div>
+
+    <!-- 5. Photos -->
+    <div class="form-section">
+      <h2>Photos</h2>
+      <div class="photo-upload" onclick="document.getElementById('photo-input').click()">
+        <input type="file" id="photo-input" accept="image/*" multiple />
+        <div class="upload-icon">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10 13V3m0 0L7 6m3-3l3 3" stroke="#6B6A64" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M3 13v3a1 1 0 001 1h12a1 1 0 001-1v-3" stroke="#6B6A64" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <p>Click to upload photos</p>
+        <small>Up to 8 photos · JPEG, PNG, HEIC · Max 10MB each</small>
+      </div>
+      <div class="photo-previews" id="photo-previews"></div>
+    </div>
+
+    <!-- 6. Price & Description -->
+    <div class="form-section">
+      <h2>Pricing &amp; description</h2>
+
+      <div class="form-row">
+        <div class="fg">
+          <label>Asking price <span class="req">*</span></label>
+          <div class="price-input-wrap">
+            <span>$</span>
+            <input type="number" id="price" min="1" step="1" placeholder="0" />
+          </div>
+        </div>
+        <div class="fg">
+          <label>Location <span class="req">*</span></label>
+          <input type="text" id="location" placeholder="City, State" />
+        </div>
+      </div>
+
+      <div class="fg">
+        <label>Description</label>
+        <textarea id="description" placeholder="Describe the club's condition, any notable details, included accessories (headcover, wrench, etc.)…"></textarea>
+      </div>
+    </div>
+
+    <!-- Submit -->
+    <div class="submit-area">
+      <button class="btn-primary" id="submit-btn" onclick="submitListing()">Submit for review</button>
+      <button class="btn-secondary" onclick="saveDraft()">Save draft</button>
+    </div>
+  </div>
+
+  <script type="module">
+    import { supabase } from './js/supabase.js'
+    import { BRANDS, SPECS } from './js/catalog.js'
+
+    // ── State ──────────────────────────────────────────────
+    let selectedCategory = null
+    let selectedCondition = 'like_new'
+    let photoFiles = []
+    let verifyPhotoFile = null
+
+    // Generate verification code on page load
+    const VERIFY_CODE = String(Math.floor(10000 + Math.random() * 90000))
+    document.getElementById('verify-code-display').textContent = VERIFY_CODE
+
+    // ── Year dropdown ──────────────────────────────────────
+    const yearSelect = document.getElementById('year-select')
+    const currentYear = new Date().getFullYear()
+    for (let y = currentYear; y >= 1980; y--) {
+      const opt = document.createElement('option')
+      opt.value = y; opt.textContent = y
+      yearSelect.appendChild(opt)
+    }
+
+    // ── Category ───────────────────────────────────────────
+    window.selectCategory = (cat) => {
+      selectedCategory = cat
+      document.querySelectorAll('.cat-pill').forEach(el => el.classList.remove('selected'))
+      document.querySelector(`[data-cat="${cat}"]`).classList.add('selected')
+      const brandSelect = document.getElementById('brand-select')
+      brandSelect.innerHTML = '<option value="">Choose brand…</option>'
+      BRANDS[cat].forEach(b => {
+        const opt = document.createElement('option')
+        opt.value = b; opt.textContent = b
+        brandSelect.appendChild(opt)
+      })
+      const otherOpt = document.createElement('option')
+      otherOpt.value = '__other__'; otherOpt.textContent = 'Other (not listed)'
+      brandSelect.appendChild(otherOpt)
+      brandSelect.disabled = false
+      document.getElementById('brand-other-wrap').style.display = 'none'
+      document.getElementById('brand-other-input').value = ''
+      renderAdvanced(cat)
+    }
+
+    // ── Brand "Other" ──────────────────────────────────────
+    document.getElementById('brand-select').addEventListener('change', function () {
+      const wrap = document.getElementById('brand-other-wrap')
+      if (this.value === '__other__') {
+        wrap.style.display = 'block'
+        document.getElementById('brand-other-input').focus()
+      } else {
+        wrap.style.display = 'none'
+        document.getElementById('brand-other-input').value = ''
+      }
+    })
+
+    function getBrandValue() {
+      const sel = document.getElementById('brand-select').value
+      if (sel === '__other__') return document.getElementById('brand-other-input').value.trim()
+      return sel
+    }
+
+    // ── Advanced options ───────────────────────────────────
+    function renderAdvanced(cat) {
+      const toggle = document.getElementById('advanced-toggle')
+      const container = document.getElementById('advanced-fields')
+      const fields = SPECS[cat]
+      if (!fields || !fields.length) { toggle.classList.remove('visible'); return }
+      toggle.classList.add('visible')
+      document.getElementById('advanced-btn').classList.remove('open')
+      container.style.display = 'none'
+      let html = ''
+      for (let i = 0; i < fields.length; i += 2) {
+        html += '<div class="form-row">'
+        fields.slice(i, i + 2).forEach(f => {
+          html += `<div class="fg"><label>${f.label}</label>`
+          if (f.type === 'select') {
+            html += `<select id="spec-${f.id}"><option value="">—</option>`
+            f.options.forEach(o => { html += `<option value="${o}">${o}</option>` })
+            html += '</select>'
+          } else {
+            html += `<input type="text" id="spec-${f.id}" placeholder="${f.placeholder || ''}" />`
+          }
+          html += '</div>'
+        })
+        html += '</div>'
+      }
+      container.innerHTML = html
+    }
+
+    window.toggleAdvanced = () => {
+      const btn = document.getElementById('advanced-btn')
+      const fields = document.getElementById('advanced-fields')
+      fields.style.display = btn.classList.toggle('open') ? 'block' : 'none'
+    }
+
+    // ── Condition ──────────────────────────────────────────
+    window.selectCondition = (cond) => {
+      selectedCondition = cond
+      document.querySelectorAll('.cond-pill').forEach(el => el.classList.remove('selected'))
+      document.querySelector(`[data-cond="${cond}"]`).classList.add('selected')
+    }
+
+    // ── Club photos ────────────────────────────────────────
+    document.getElementById('photo-input').addEventListener('change', function () {
+      photoFiles = [...photoFiles, ...Array.from(this.files).slice(0, 8 - photoFiles.length)]
+      renderPreviews(); this.value = ''
+    })
+
+    function renderPreviews() {
+      const c = document.getElementById('photo-previews')
+      c.innerHTML = ''
+      photoFiles.forEach((file, idx) => {
+        const div = document.createElement('div')
+        div.className = 'photo-thumb'
+        div.innerHTML = `<img src="${URL.createObjectURL(file)}" /><button class="remove-photo" onclick="removePhoto(${idx})">✕</button>`
+        c.appendChild(div)
+      })
+    }
+    window.removePhoto = (idx) => { photoFiles.splice(idx, 1); renderPreviews() }
+
+    // ── Verification photo ─────────────────────────────────
+    document.getElementById('verify-photo-input').addEventListener('change', function () {
+      if (!this.files[0]) return
+      verifyPhotoFile = this.files[0]
+      document.getElementById('verify-photo-preview').innerHTML = `
+        <div class="photo-thumb" style="max-width:160px">
+          <img src="${URL.createObjectURL(verifyPhotoFile)}" />
+          <button class="remove-photo" onclick="removeVerifyPhoto()">✕</button>
+        </div>`
+    })
+    window.removeVerifyPhoto = () => {
+      verifyPhotoFile = null
+      document.getElementById('verify-photo-preview').innerHTML = ''
+      document.getElementById('verify-photo-input').value = ''
+    }
+
+    // ── Collect advanced specs ─────────────────────────────
+    function collectSpecs() {
+      const specs = {}
+      ;(SPECS[selectedCategory] || []).forEach(f => {
+        const el = document.getElementById(`spec-${f.id}`)
+        if (el && el.value) specs[f.id] = el.value
+      })
+      return specs
+    }
+
+    // ── Validation ─────────────────────────────────────────
+    function validate() {
+      if (!selectedCategory) return 'Please select a category.'
+      if (!getBrandValue()) return 'Please select or enter a brand.'
+      if (!document.getElementById('model-input').value.trim()) return 'Please enter the club model.'
+      if (!document.getElementById('price').value || Number(document.getElementById('price').value) <= 0) return 'Please enter a valid price.'
+      if (!document.getElementById('location').value.trim()) return 'Please enter a location.'
+      if (!verifyPhotoFile) return 'Please upload a verification photo showing your code with the club.'
+      return null
+    }
+
+    // ── Upload helper ──────────────────────────────────────
+    async function uploadFile(path, file) {
+      const { error } = await supabase.storage.from('listing-images').upload(path, file)
+      if (error) return null
+      return supabase.storage.from('listing-images').getPublicUrl(path).data.publicUrl
+    }
+
+    // ── Submit ─────────────────────────────────────────────
+    async function publish(asDraft) {
+      const errorEl = document.getElementById('error')
+      const successEl = document.getElementById('success')
+      const submitBtn = document.getElementById('submit-btn')
+      errorEl.style.display = 'none'; successEl.style.display = 'none'
+
+      if (!asDraft) {
+        const err = validate()
+        if (err) {
+          errorEl.textContent = err
+          errorEl.style.display = 'block'
+          errorEl.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          return
+        }
+      }
+
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) { window.location.href = 'signup.html?next=sell.html'; return }
+
+      submitBtn.disabled = true
+      submitBtn.textContent = asDraft ? 'Saving…' : 'Submitting…'
+
+      const specs = collectSpecs()
+      const brand = getBrandValue()
+      const model = document.getElementById('model-input').value.trim()
+
+      const { data: listing, error: listingError } = await supabase
+        .from('listings')
+        .insert({
+          user_id: session.user.id,
+          title: `${brand} ${model}`,
+          brand, model,
+          category: selectedCategory,
+          year: document.getElementById('year-select').value || null,
+          hand: document.getElementById('hand-select').value,
+          condition: selectedCondition,
+          price: Number(document.getElementById('price').value),
+          location: document.getElementById('location').value.trim(),
+          description: document.getElementById('description').value.trim() || null,
+          loft: specs.loft || null,
+          flex: specs.flex ? flexToDb(specs.flex) : null,
+          shaft: specs.shaft || null,
+          verification_code: VERIFY_CODE,
+          status: asDraft ? 'draft' : 'under_review',
+        })
+        .select().single()
+
+      if (listingError) {
+        errorEl.textContent = listingError.message
+        errorEl.style.display = 'block'
+        submitBtn.disabled = false
+        submitBtn.textContent = 'Submit for review'
+        return
+      }
+
+      // Upload club photos
+      for (let i = 0; i < photoFiles.length; i++) {
+        const ext = photoFiles[i].name.split('.').pop()
+        const url = await uploadFile(`${listing.id}/${Date.now()}-${i}.${ext}`, photoFiles[i])
+        if (url) await supabase.from('listing_images').insert({ listing_id: listing.id, url, position: i })
+      }
+
+      // Upload verification photo and save URL
+      if (verifyPhotoFile) {
+        const ext = verifyPhotoFile.name.split('.').pop()
+        const verifyUrl = await uploadFile(`${listing.id}/verify.${ext}`, verifyPhotoFile)
+        if (verifyUrl) await supabase.from('listing_images').insert({ listing_id: listing.id, url: verifyUrl, position: 999 })
+      }
+
+      successEl.textContent = asDraft
+        ? 'Draft saved.'
+        : 'Submitted! Your listing is under review and will go live once approved.'
+      successEl.style.display = 'block'
+      setTimeout(() => { window.location.href = 'browse.html' }, 2400)
+    }
+
+    function flexToDb(flex) {
+      return { 'Extra Stiff (X)': 'extra_stiff', 'Stiff (S)': 'stiff', 'Regular (R)': 'regular', 'Senior (A)': 'senior', 'Ladies (L)': 'ladies' }[flex] || null
+    }
+
+    window.submitListing = () => publish(false)
+    window.saveDraft = () => publish(true)
+  </script>
+
+</body>
+</html>

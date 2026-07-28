@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Listing — Par Value</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    body { background: var(--pv-paper); }
+
+    /* ── Nav ── */
+    .nav {
+      background: var(--pv-surface);
+      border-bottom: 1px solid var(--pv-border);
+      padding: 0 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 60px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .nav-logo svg { display: block; }
+    .nav-back {
+      font-size: 0.875rem;
+      color: var(--pv-text-secondary);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .nav-back:hover { color: var(--pv-ink); text-decoration: none; }
+    .nav-actions { display: flex; align-items: center; gap: 12px; }
+    .btn-sell {
+      padding: 8px 18px;
+      background: var(--pv-green);
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      font-family: var(--font-sans);
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .btn-sell:hover { background: var(--pv-green-dark); text-decoration: none; color: #fff; }
+
+    /* ── Layout ── */
+    .listing-wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 36px 24px 80px;
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      gap: 40px;
+      align-items: start;
+    }
+
+    /* ── Left column ── */
+    /* Photo gallery */
+    .gallery { margin-bottom: 32px; }
+
+    .gallery-main {
+      aspect-ratio: 4/3;
+      border-radius: 12px;
+      overflow: hidden;
+      background: var(--pv-paper);
+      border: 1px solid var(--pv-border);
+      position: relative;
+      margin-bottom: 10px;
+    }
+
+    .gallery-main img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .gallery-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--pv-border);
+    }
+
+    .gallery-placeholder svg { width: 72px; height: 72px; }
+
+    .gallery-thumbs {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .gallery-thumbs::-webkit-scrollbar { display: none; }
+
+    .gallery-thumb {
+      flex-shrink: 0;
+      width: 72px;
+      height: 72px;
+      border-radius: 7px;
+      overflow: hidden;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: border-color 0.12s;
+    }
+
+    .gallery-thumb.active { border-color: var(--pv-green); }
+    .gallery-thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+    /* Club details */
+    .listing-header { margin-bottom: 24px; }
+
+    .listing-category {
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--pv-text-tertiary);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .listing-category svg { color: var(--pv-text-tertiary); }
+
+    .listing-title {
+      font-family: var(--font-display);
+      font-size: 1.75rem;
+      font-weight: 600;
+      line-height: 1.2;
+      margin-bottom: 8px;
+    }
+
+    .listing-brand-model {
+      font-size: 1rem;
+      color: var(--pv-text-secondary);
+      margin-bottom: 16px;
+    }
+
+    .listing-specs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .spec-tag {
+      padding: 5px 12px;
+      border: 1px solid var(--pv-border);
+      border-radius: 6px;
+      font-size: 0.8125rem;
+      color: var(--pv-text-secondary);
+      background: var(--pv-surface);
+    }
+
+    .spec-tag strong { color: var(--pv-ink); font-weight: 600; }
+
+    .listing-description {
+      font-size: 0.9375rem;
+      line-height: 1.7;
+      color: var(--pv-text-secondary);
+      margin-bottom: 28px;
+    }
+
+    /* Market section */
+    .market-section {
+      background: var(--pv-surface);
+      border: 1px solid var(--pv-border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .market-section h3 {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--pv-text-tertiary);
+      margin-bottom: 16px;
+    }
+
+    /* Price history chart */
+    .price-chart-wrap { margin-top: 20px; }
+    .price-chart-wrap h3 { margin-bottom: 12px; }
+
+    .price-chart {
+      width: 100%;
+      height: 80px;
+      overflow: visible;
+    }
+
+    .chart-no-data {
+      font-size: 0.8125rem;
+      color: var(--pv-text-tertiary);
+      font-style: italic;
+    }
+
+    .price-chart-meta {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 6px;
+      font-size: 0.75rem;
+      color: var(--pv-text-tertiary);
+    }
+
+    /* Condition ratings summary */
+    .ratings-section {
+      background: var(--pv-surface);
+      border: 1px solid var(--pv-border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .ratings-section h3 {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--pv-text-tertiary);
+      margin-bottom: 16px;
+    }
+
+    .rating-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .rating-row:last-child { margin-bottom: 0; }
+
+    .rating-label {
+      font-size: 0.8125rem;
+      width: 120px;
+      flex-shrink: 0;
+      color: var(--pv-text-secondary);
+    }
+
+    .rating-bar-track {
+      flex: 1;
+      height: 6px;
+      background: var(--pv-paper);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .rating-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      background: var(--pv-green);
+      transition: width 0.4s;
+    }
+
+    .rating-count {
+      font-size: 0.75rem;
+      color: var(--pv-text-tertiary);
+      width: 20px;
+      text-align: right;
+    }
+
+    /* ── Right column (sticky sidebar) ── */
+    .listing-sidebar {
+      position: sticky;
+      top: 80px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .price-card {
+      background: var(--pv-surface);
+      border: 1px solid var(--pv-border);
+      border-radius: 12px;
+      padding: 24px;
+    }
+
+    .price-card .asking-label {
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--pv-text-tertiary);
+      margin-bottom: 4px;
+    }
+
+    .price-card .asking-price {
+      font-family: var(--font-display);
+      font-size: 2.25rem;
+      font-weight: 600;
+      color: var(--pv-ink);
+      margin-bottom: 6px;
+      line-height: 1;
+    }
+
+    .price-card .condition-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 5px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: var(--pv-paper);
+      color: var(--pv-text-secondary);
+      margin-bottom: 20px;
+    }
+
+    .price-card .par-meter-wrap { margin-bottom: 20px; }
+
+    .btn-buy {
+      width: 100%;
+      padding: 13px;
+      background: var(--pv-green);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      font-family: var(--font-sans);
+      cursor: pointer;
+      margin-bottom: 10px;
+      transition: background 0.15s;
+    }
+
+    .btn-buy:hover { background: var(--pv-green-dark); }
+
+    .btn-offer {
+      width: 100%;
+      padding: 12px;
+      background: var(--pv-surface);
+      color: var(--pv-ink);
+      border: 1px solid var(--pv-border);
+      border-radius: 8px;
+      font-size: 0.9375rem;
+      font-weight: 600;
+      font-family: var(--font-sans);
+      cursor: pointer;
+      margin-bottom: 10px;
+      transition: border-color 0.15s;
+    }
+
+    .btn-offer:hover { border-color: var(--pv-ink); }
+
+    .btn-message {
+      width: 100%;
+      padding: 11px;
+      background: transparent;
+      color: var(--pv-text-secondary);
+      border: 1px solid var(--pv-border);
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      font-family: var(--font-sans);
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+    }
+
+    .btn-message:hover { color: var(--pv-ink); border-color: var(--pv-ink); }
+
+    .price-card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 16px;
+      font-size: 0.75rem;
+      color: var(--pv-text-tertiary);
+    }
+
+    /* Seller card */
+    .seller-card {
+      background: var(--pv-surface);
+      border: 1px solid var(--pv-border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .seller-card h3 {
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--pv-text-tertiary);
+      margin-bottom: 14px;
+    }
+
+    .seller-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .seller-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--pv-paper);
+      border: 1px solid var(--pv-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--pv-text-secondary);
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+
+    .seller-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+    .seller-name {
+      font-weight: 600;
+      font-size: 0.9375rem;
+      color: var(--pv-ink);
+    }
+
+    .seller-meta {
+      font-size: 0.8125rem;
+      color: var(--pv-text-secondary);
+      margin-top: 2px;
+    }
+
+    .seller-type-badge {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      background: #E8F5EE;
+      color: var(--pv-green);
+      margin-left: 6px;
+    }
+
+    /* Offer modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: var(--pv-surface);
+      border-radius: 16px;
+      padding: 32px;
+      width: 100%;
+      max-width: 400px;
+      margin: 20px;
+    }
+
+    .modal h2 {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .modal p { font-size: 0.875rem; color: var(--pv-text-secondary); margin-bottom: 20px; }
+
+    .modal .fg { margin-bottom: 16px; }
+    .modal .fg label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--pv-text-tertiary);
+      margin-bottom: 6px;
+    }
+
+    .modal .price-input-wrap { position: relative; }
+    .modal .price-input-wrap span {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--pv-text-secondary);
+    }
+    .modal .price-input-wrap input {
+      width: 100%;
+      padding: 11px 14px 11px 26px;
+      border: 1px solid var(--pv-border);
+      border-radius: 8px;
+      font-size: 1.125rem;
+      font-family: var(--font-sans);
+      outline: none;
+    }
+    .modal .price-input-wrap input:focus { border-color: var(--pv-green); }
+
+    .modal-actions { display: flex; gap: 10px; margin-top: 4px; }
+    .modal-actions .btn-buy { margin-bottom: 0; }
+    .btn-cancel {
+      padding: 12px 18px;
+      background: transparent;
+      color: var(--pv-text-secondary);
+      border: 1px solid var(--pv-border);
+      border-radius: 8px;
+      font-size: 0.9375rem;
+      font-weight: 500;
+      font-family: var(--font-sans);
+      cursor: pointer;
+    }
+
+    .error-msg {
+      background: #FEF2F2;
+      border: 1px solid #FECACA;
+      color: #991B1B;
+      font-size: 0.875rem;
+      padding: 10px 14px;
+      border-radius: 8px;
+      margin-bottom: 14px;
+      display: none;
+    }
+
+    /* Loading skeleton */
+    .skeleton {
+      background: linear-gradient(90deg, var(--pv-paper) 25%, var(--pv-border) 50%, var(--pv-paper) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+      border-radius: 6px;
+    }
+    @keyframes shimmer { to { background-position: -200% 0; } }
+
+    @media (max-width: 860px) {
+      .listing-wrap {
+        grid-template-columns: 1fr;
+        padding: 24px 16px 60px;
+        gap: 28px;
+      }
+      .listing-sidebar { position: static; }
+      .listing-sidebar { order: -1; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="nav">
+    <a class="nav-back" href="browse.html">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Browse
+    </a>
+    <a class="nav-logo" href="browse.html">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 100" height="26">
+        <text x="224" y="54" text-anchor="middle" style="font-family:'Playfair Display',Georgia,serif;font-size:38px;font-weight:500;letter-spacing:8px;fill:#1A1A18">PAR VALUE</text>
+        <line x1="120" y1="74" x2="320" y2="74" stroke="#1A7F5A" stroke-width="2"/>
+      </svg>
+    </a>
+    <div class="nav-actions">
+      <a class="nav-link" href="browse.html">Browse</a>
+      <a class="nav-link" href="messages.html">Messages</a>
+      <a class="nav-link" href="watchlist.html">Watchlist</a>
+      <a class="btn-sell" href="sell.html">List a club</a>
+      <button class="nav-user" id="nav-user-btn" style="width:32px;height:32px;border-radius:50%;background:var(--pv-border);border:none;cursor:pointer;font-size:0.75rem;font-weight:600;font-family:var(--font-sans);color:var(--pv-text-secondary)">—</button>
+    </div>
+  </nav>
+
+  <div class="listing-wrap" id="listing-wrap">
+    <!-- Content injected by JS -->
+    <div>
+      <div class="skeleton" style="aspect-ratio:4/3;border-radius:12px;margin-bottom:10px"></div>
+      <div class="skeleton" style="height:14px;width:60%;margin-bottom:16px"></div>
+      <div class="skeleton" style="height:28px;width:80%;margin-bottom:10px"></div>
+      <div class="skeleton" style="height:14px;width:45%"></div>
+    </div>
+    <div>
+      <div class="skeleton" style="height:280px;border-radius:12px"></div>
+    </div>
+  </div>
+
+  <!-- Offer modal -->
+  <div class="modal-overlay" id="offer-modal">
+    <div class="modal">
+      <h2>Make an offer</h2>
+      <p id="offer-modal-subtitle">Seller will have 48 hours to accept or decline.</p>
+      <div class="error-msg" id="offer-error"></div>
+      <div class="fg">
+        <label>Your offer</label>
+        <div class="price-input-wrap">
+          <span>$</span>
+          <input type="number" id="offer-amount" min="1" step="1" placeholder="0" />
+        </div>
+      </div>
+      <div class="fg">
+        <label>Message (optional)</label>
+        <textarea id="offer-message" style="width:100%;padding:10px 14px;border:1px solid var(--pv-border);border-radius:8px;font-size:0.9375rem;font-family:var(--font-sans);resize:none;height:72px;outline:none" placeholder="Any notes for the seller…"></textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-buy" id="offer-submit-btn" onclick="submitOffer()">Send offer</button>
+        <button class="btn-cancel" onclick="closeOfferModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { supabase } from './js/supabase.js'
+    import { getMarketAverage, getPriceHistory, renderParMeter } from './js/market.js'
+    import { STATE_NAME } from './js/states.js'
+    import { initNav } from './js/nav.js'
+
+    const params = new URLSearchParams(location.search)
+    const listingId = params.get('id')
+
+    const navResult = await initNav(supabase)
+    const session = navResult?.session ?? null
+
+    if (!listingId) {
+      window.location.href = 'browse.html'
+    }
+
+    // ── Load listing ────────────────────────────────────────
+    const { data: listing, error } = await supabase
+      .from('listings')
+      .select(`
+        *,
+        listing_images(url, position),
+        profiles:user_id(id, full_name, avatar_url, seller_type, rating, sales_count, state)
+      `)
+      .eq('id', listingId)
+      .single()
+
+    if (error || !listing) {
+      document.getElementById('listing-wrap').innerHTML = `
+        <div style="grid-column:1/-1;text-align:center;padding:80px 20px">
+          <h2 style="font-family:var(--font-display);margin-bottom:8px">Listing not found</h2>
+          <p style="color:var(--pv-text-secondary)">It may have been removed. <a href="browse.html">Browse other clubs</a></p>
+        </div>
+      `
+      return
+    }
+
+    const images = [...(listing.listing_images || [])].sort((a, b) => a.position - b.position)
+    const seller = listing.profiles
+
+    // ── Log view (fire-and-forget) ───────────────────────────
+    supabase.from('listing_views').insert({ listing_id: listingId, viewer_id: session?.user?.id ?? null })
+
+    // ── Load market + price history in parallel ─────────────
+    const [marketRow, priceHistory, conditionRatings, watchlistRow] = await Promise.all([
+      getMarketAverage(listing.brand, listing.model, listing.condition),
+      getPriceHistory(listing.brand, listing.model, 90),
+      supabase.from('condition_ratings').select('actual_condition').eq('listing_id', listingId),
+      session ? supabase.from('watchlist').select('id').eq('listing_id', listingId).eq('user_id', session.user.id).maybeSingle() : Promise.resolve({ data: null }),
+    ])
+
+    let isWatching = !!watchlistRow?.data
+
+    // ── Render page ─────────────────────────────────────────
+    const isOwner = session?.user?.id === listing.user_id
+
+    document.title = `${listing.brand} ${listing.model} — Par Value`
+
+    document.getElementById('listing-wrap').innerHTML = `
+      <!-- Left column -->
+      <div class="listing-left">
+
+        <!-- Gallery -->
+        <div class="gallery">
+          <div class="gallery-main" id="gallery-main">
+            ${images.length
+              ? `<img id="main-img" src="${images[0].url}" alt="${listing.brand} ${listing.model}" />`
+              : `<div class="gallery-placeholder">${catIconLarge(listing.category)}</div>`
+            }
+          </div>
+          ${images.length > 1 ? `
+            <div class="gallery-thumbs">
+              ${images.map((img, i) => `
+                <div class="gallery-thumb ${i === 0 ? 'active' : ''}" onclick="setMainPhoto('${img.url}', this)">
+                  <img src="${img.url}" alt="Photo ${i+1}" />
+                </div>
+              `).join('')}
+            </div>
+          ` : ''}
+        </div>
+
+        <!-- Club header -->
+        <div class="listing-header">
+          <div class="listing-category">
+            ${catIconSmall(listing.category)}
+            ${CAT_LABELS[listing.category] || listing.category}
+          </div>
+          <h1 class="listing-title">${listing.brand} ${listing.model}</h1>
+          <div class="listing-specs">
+            ${specTag('Condition', CONDITION_LABELS[listing.condition] || listing.condition)}
+            ${listing.year ? specTag('Year', listing.year) : ''}
+            ${listing.loft ? specTag('Loft', listing.loft) : ''}
+            ${listing.flex ? specTag('Flex', FLEX_LABELS[listing.flex] || listing.flex) : ''}
+            ${listing.shaft ? specTag('Shaft', listing.shaft) : ''}
+            ${specTag('Hand', listing.hand === 'left' ? 'Left-handed' : 'Right-handed')}
+            ${listing.location ? specTag('Location', listing.location) : ''}
+          </div>
+          ${listing.description ? `<p class="listing-description">${escapeHTML(listing.description)}</p>` : ''}
+        </div>
+
+        <!-- Market pricing -->
+        <div class="market-section">
+          <h3>Market pricing</h3>
+          <div id="par-meter-container"></div>
+          ${marketRow ? `
+            <div style="display:flex;gap:24px;margin-top:16px;padding-top:16px;border-top:1px solid var(--pv-border)">
+              <div>
+                <div style="font-size:0.6875rem;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--pv-text-tertiary);margin-bottom:3px">Avg price</div>
+                <div style="font-size:1rem;font-weight:600;color:var(--pv-ink)">$${fmt(marketRow.avg_price)}</div>
+              </div>
+              <div>
+                <div style="font-size:0.6875rem;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--pv-text-tertiary);margin-bottom:3px">Low</div>
+                <div style="font-size:1rem;font-weight:600;color:var(--pv-below-par)">$${fmt(marketRow.low_price)}</div>
+              </div>
+              <div>
+                <div style="font-size:0.6875rem;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--pv-text-tertiary);margin-bottom:3px">High</div>
+                <div style="font-size:1rem;font-weight:600;color:var(--pv-above-par)">$${fmt(marketRow.high_price)}</div>
+              </div>
+            </div>
+          ` : ''}
+
+          <!-- Price history chart -->
+          <div class="price-chart-wrap">
+            <h3>Price history (90 days)</h3>
+            <div id="price-chart-container"></div>
+          </div>
+        </div>
+
+        <!-- Buyer condition ratings -->
+        <div class="ratings-section" id="ratings-section" style="display:none">
+          <h3>Buyer condition ratings</h3>
+          <div id="ratings-bars"></div>
+        </div>
+
+      </div>
+
+      <!-- Right column -->
+      <div class="listing-sidebar">
+
+        <div class="price-card">
+          <div class="asking-label">Asking price</div>
+          <div class="asking-price">$${fmt(listing.price)}</div>
+          <span class="condition-badge">
+            <svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3.5" fill="${conditionColor(listing.condition)}"/></svg>
+            ${CONDITION_LABELS[listing.condition] || listing.condition}
+          </span>
+
+          <div class="par-meter-wrap" id="par-meter-sidebar"></div>
+
+          ${isOwner
+            ? `<a href="sell.html?edit=${listing.id}" class="btn-buy" style="display:block;text-align:center;text-decoration:none;margin-bottom:10px">Edit listing</a>`
+            : `
+              <button class="btn-buy" onclick="window.location.href='browse.html'">Buy now</button>
+              <button class="btn-offer" onclick="openOfferModal()">Make an offer</button>
+              <button class="btn-message" onclick="messagesSeller()">Message seller</button>
+              <button class="btn-watch" id="watch-btn" onclick="toggleWatch()" style="width:100%;padding:10px;background:transparent;border:1px solid var(--pv-border);border-radius:8px;font-size:0.875rem;font-weight:500;font-family:var(--font-sans);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;color:var(--pv-text-secondary);margin-top:8px;transition:border-color 0.15s,color 0.15s">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="${isWatching ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="1.4" id="watch-heart"><path d="M7 12S2 8.5 2 5a3 3 0 015-2.24A3 3 0 0112 5c0 3.5-5 7-5 7z"/></svg>
+                <span id="watch-label">${isWatching ? 'Saved to watchlist' : 'Save to watchlist'}</span>
+              </button>
+            `
+          }
+
+          <div class="price-card-footer">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1v5l3 2" stroke="var(--pv-text-tertiary)" stroke-width="1.2" stroke-linecap="round"/><circle cx="6" cy="6" r="5" stroke="var(--pv-text-tertiary)" stroke-width="1.2"/></svg>
+            Listed ${timeAgo(listing.created_at)}
+          </div>
+        </div>
+
+        <div class="seller-card">
+          <h3>Seller</h3>
+          <div class="seller-info">
+            <div class="seller-avatar">
+              ${seller?.avatar_url
+                ? `<img src="${seller.avatar_url}" alt="${seller.full_name}" />`
+                : (seller?.full_name?.[0] ?? '?').toUpperCase()
+              }
+            </div>
+            <div>
+              <div class="seller-name">
+                ${escapeHTML(seller?.full_name || 'Anonymous')}
+                ${seller?.seller_type === 'dealer' ? '<span class="seller-type-badge">Dealer</span>' : ''}
+              </div>
+              <div class="seller-meta">
+                ${seller?.sales_count ? `${seller.sales_count} sale${seller.sales_count !== 1 ? 's' : ''}` : 'New seller'}
+                ${seller?.state ? ` · ${STATE_NAME[seller.state] || seller.state}` : ''}
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    `
+
+    // ── Render par-meter (both instances) ──────────────────
+    renderParMeter(document.getElementById('par-meter-container'), listing.price, marketRow)
+    renderParMeter(document.getElementById('par-meter-sidebar'), listing.price, marketRow)
+
+    // ── Render price history chart ─────────────────────────
+    renderPriceChart(priceHistory)
+
+    // ── Render condition ratings ───────────────────────────
+    renderConditionRatings(conditionRatings.data || [])
+
+    // ── Watchlist toggle ───────────────────────────────────
+    window.toggleWatch = async () => {
+      if (!session) { window.location.href = `login.html?next=listing.html%3Fid%3D${listingId}`; return }
+      const heart = document.getElementById('watch-heart')
+      const label = document.getElementById('watch-label')
+      if (isWatching) {
+        await supabase.from('watchlist').delete().eq('listing_id', listingId).eq('user_id', session.user.id)
+        isWatching = false
+        heart.setAttribute('fill', 'none')
+        label.textContent = 'Save to watchlist'
+      } else {
+        await supabase.from('watchlist').insert({ listing_id: listingId, user_id: session.user.id })
+        isWatching = true
+        heart.setAttribute('fill', 'currentColor')
+        label.textContent = 'Saved to watchlist'
+      }
+    }
+
+    // ── Gallery thumb switch ───────────────────────────────
+    window.setMainPhoto = (url, thumbEl) => {
+      document.getElementById('main-img').src = url
+      document.querySelectorAll('.gallery-thumb').forEach(t => t.classList.remove('active'))
+      thumbEl.classList.add('active')
+    }
+
+    // ── Offer modal ────────────────────────────────────────
+    window.openOfferModal = () => {
+      if (!session) { window.location.href = `login.html?next=listing.html?id=${listingId}`; return }
+      document.getElementById('offer-modal-subtitle').textContent =
+        `Offering on: ${listing.brand} ${listing.model} — listed at $${fmt(listing.price)}`
+      document.getElementById('offer-modal').classList.add('open')
+    }
+
+    window.closeOfferModal = () => {
+      document.getElementById('offer-modal').classList.remove('open')
+      document.getElementById('offer-error').style.display = 'none'
+    }
+
+    window.submitOffer = async () => {
+      const amount = Number(document.getElementById('offer-amount').value)
+      const errorEl = document.getElementById('offer-error')
+      const btn = document.getElementById('offer-submit-btn')
+      errorEl.style.display = 'none'
+
+      if (!amount || amount <= 0) {
+        errorEl.textContent = 'Please enter a valid offer amount.'
+        errorEl.style.display = 'block'
+        return
+      }
+
+      btn.textContent = 'Sending…'
+      btn.disabled = true
+
+      const { error } = await supabase.from('offers').insert({
+        listing_id: listingId,
+        buyer_id: session.user.id,
+        amount,
+      })
+
+      if (error) {
+        errorEl.textContent = error.message
+        errorEl.style.display = 'block'
+        btn.textContent = 'Send offer'
+        btn.disabled = false
+      } else {
+        closeOfferModal()
+        // TODO: route to messages when messaging is built
+      }
+    }
+
+    window.messagesSeller = () => {
+      if (!session) { window.location.href = `login.html?next=listing.html?id=${listingId}`; return }
+      window.location.href = `messages.html?listing=${listingId}&with=${listing.user_id}`
+    }
+
+    // ── Price history sparkline SVG ────────────────────────
+    function renderPriceChart(history) {
+      const container = document.getElementById('price-chart-container')
+      if (!history || history.length < 2) {
+        container.innerHTML = `<p class="chart-no-data">Not enough data yet — chart will populate as listings are made and sold.</p>`
+        return
+      }
+
+      const prices = history.map(h => h.price)
+      const dates  = history.map(h => new Date(h.recorded_at))
+      const minP = Math.min(...prices)
+      const maxP = Math.max(...prices)
+      const minD = Math.min(...dates)
+      const maxD = Math.max(...dates)
+
+      const W = 600, H = 80, PAD = 8
+
+      const x = (d) => PAD + ((new Date(d) - minD) / (maxD - minD || 1)) * (W - PAD * 2)
+      const y = (p) => PAD + (1 - (p - minP) / (maxP - minP || 1)) * (H - PAD * 2)
+
+      const pts = history.map(h => `${x(h.recorded_at)},${y(h.price)}`).join(' ')
+      const areaBottom = `${x(history[history.length-1].recorded_at)},${H} ${x(history[0].recorded_at)},${H}`
+
+      container.innerHTML = `
+        <svg class="price-chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#1A7F5A" stop-opacity="0.15"/>
+              <stop offset="100%" stop-color="#1A7F5A" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <polygon points="${pts} ${areaBottom}" fill="url(#chartGrad)"/>
+          <polyline points="${pts}" fill="none" stroke="#1A7F5A" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+          ${history.map(h => `<circle cx="${x(h.recorded_at)}" cy="${y(h.price)}" r="3" fill="#1A7F5A"/>`).join('')}
+        </svg>
+        <div class="price-chart-meta">
+          <span>${dates[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+          <span>$${fmt(minP)} — $${fmt(maxP)}</span>
+          <span>${dates[dates.length-1].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+        </div>
+      `
+    }
+
+    // ── Condition ratings bars ─────────────────────────────
+    function renderConditionRatings(ratings) {
+      const section = document.getElementById('ratings-section')
+      const container = document.getElementById('ratings-bars')
+      if (!ratings || ratings.length === 0) return
+
+      section.style.display = 'block'
+      const tiers = ['new', 'used_like_new', 'used_very_good', 'used_fair']
+      const tierLabels = { new: 'New', used_like_new: 'Like New', used_very_good: 'Very Good', used_fair: 'Fair' }
+      const counts = Object.fromEntries(tiers.map(t => [t, 0]))
+      ratings.forEach(r => { if (counts[r.actual_condition] !== undefined) counts[r.actual_condition]++ })
+      const total = ratings.length
+
+      container.innerHTML = `
+        <div style="font-size:0.8125rem;color:var(--pv-text-secondary);margin-bottom:12px">${total} buyer rating${total !== 1 ? 's' : ''}</div>
+        ${tiers.map(t => `
+          <div class="rating-row">
+            <span class="rating-label">${tierLabels[t]}</span>
+            <div class="rating-bar-track">
+              <div class="rating-bar-fill" style="width:${total ? (counts[t]/total*100) : 0}%"></div>
+            </div>
+            <span class="rating-count">${counts[t]}</span>
+          </div>
+        `).join('')}
+      `
+    }
+
+    // ── Helpers ────────────────────────────────────────────
+    function fmt(n) { return Number(n).toLocaleString('en-US', { maximumFractionDigits: 0 }) }
+
+    function specTag(label, value) {
+      return `<span class="spec-tag"><strong>${label}</strong> &nbsp;${escapeHTML(String(value))}</span>`
+    }
+
+    function escapeHTML(str) {
+      return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+    }
+
+    function timeAgo(iso) {
+      const s = (Date.now() - new Date(iso)) / 1000
+      if (s < 60) return 'just now'
+      if (s < 3600) return `${Math.floor(s/60)}m ago`
+      if (s < 86400) return `${Math.floor(s/3600)}h ago`
+      return `${Math.floor(s/86400)}d ago`
+    }
+
+    function conditionColor(cond) {
+      return { new:'#1A7F5A', like_new:'#35A87D', excellent:'#6B9E84', very_good:'#6B6A64', good:'#9A8A6A', fair:'#B4532E' }[cond] || '#6B6A64'
+    }
+
+    function catIconSmall(cat) {
+      const icons = {
+        wood:   `<svg width="14" height="14" viewBox="0 0 44 44" fill="none"><path d="M6 28 C6 21 11 16 20 15 C29 14 36 17 37 22 C38 27 34 32 26 33 C18 34 6 35 6 28 Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><line x1="33" y1="16" x2="40" y2="4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`,
+        iron:   `<svg width="14" height="14" viewBox="0 0 44 44" fill="none"><path d="M8 22 L30 16 L32 30 L10 34 Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><line x1="30" y1="16" x2="36" y2="4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`,
+        wedge:  `<svg width="14" height="14" viewBox="0 0 44 44" fill="none"><path d="M6 20 L26 12 L30 32 L8 36 Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><line x1="26" y1="12" x2="31" y2="3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`,
+        putter: `<svg width="14" height="14" viewBox="0 0 44 44" fill="none"><rect x="6" y="28" width="28" height="9" rx="1.5" stroke="currentColor" stroke-width="2"/><line x1="30" y1="28" x2="34" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`,
+      }
+      return icons[cat] || icons.iron
+    }
+
+    function catIconLarge(cat) {
+      const icons = {
+        wood:   `<svg width="72" height="72" viewBox="0 0 44 44" fill="none"><path d="M6 28 C6 21 11 16 20 15 C29 14 36 17 37 22 C38 27 34 32 26 33 C18 34 6 35 6 28 Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><line x1="33" y1="16" x2="40" y2="4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+        iron:   `<svg width="72" height="72" viewBox="0 0 44 44" fill="none"><path d="M8 22 L30 16 L32 30 L10 34 Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><line x1="30" y1="16" x2="36" y2="4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+        wedge:  `<svg width="72" height="72" viewBox="0 0 44 44" fill="none"><path d="M6 20 L26 12 L30 32 L8 36 Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><line x1="26" y1="12" x2="31" y2="3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+        putter: `<svg width="72" height="72" viewBox="0 0 44 44" fill="none"><rect x="6" y="28" width="28" height="9" rx="1.5" stroke="currentColor" stroke-width="1.5"/><line x1="30" y1="28" x2="34" y2="6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>`,
+      }
+      return icons[cat] || icons.iron
+    }
+
+    const CAT_LABELS = { wood: 'Woods', iron: 'Irons', wedge: 'Wedges', putter: 'Putters' }
+    const CONDITION_LABELS = { new:'New', like_new:'Like new', excellent:'Excellent', very_good:'Very good', good:'Good', fair:'Fair' }
+    const FLEX_LABELS = { extra_stiff:'Extra Stiff (X)', stiff:'Stiff (S)', regular:'Regular (R)', senior:'Senior (A)', ladies:'Ladies (L)' }
+  </script>
+
+</body>
+</html>

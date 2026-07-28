@@ -51,6 +51,12 @@
     .auth-switch a { color: var(--pv-green-dark); font-weight: 500; }
 
     .error-msg { background: #FEF2F2; border: 1px solid #FECACA; color: #991B1B; font-size: 0.875rem; padding: 10px 14px; border-radius: 8px; margin-bottom: 16px; display: none; }
+    .success-msg { background: #F0FDF4; border: 1px solid #BBF7D0; color: #166534; font-size: 0.875rem; padding: 10px 14px; border-radius: 8px; margin-bottom: 16px; display: none; }
+
+    .fg-label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .fg-label-row label { margin-bottom: 0; }
+    .link-sm { font-size: 0.8125rem; color: var(--pv-green-dark); font-weight: 500; text-decoration: none; }
+    .link-sm:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
@@ -67,14 +73,18 @@
     <p>Sign in to your Par Value account</p>
 
     <div class="error-msg" id="error"></div>
+    <div class="success-msg" id="success"></div>
 
     <form id="login-form">
       <div class="fg">
         <label>Email</label>
         <input type="email" id="email" placeholder="you@example.com" required />
       </div>
-      <div class="fg">
-        <label>Password</label>
+      <div class="fg" id="password-fg">
+        <div class="fg-label-row">
+          <label>Password</label>
+          <a href="#" id="forgot-link" class="link-sm">Forgot password?</a>
+        </div>
         <input type="password" id="password" placeholder="••••••••" required />
       </div>
       <button type="submit" class="auth-submit" id="submit-btn">Sign in</button>
@@ -95,18 +105,78 @@
 
     const form = document.getElementById('login-form')
     const errorEl = document.getElementById('error')
+    const successEl = document.getElementById('success')
     const submitBtn = document.getElementById('submit-btn')
+    const passwordFg = document.getElementById('password-fg')
+    const forgotLink = document.getElementById('forgot-link')
+    const titleEl = document.querySelector('.auth-card h1')
+    const subEl = document.querySelector('.auth-card p')
+    const divider = document.querySelector('.auth-divider')
+    const googleBtn = document.getElementById('google-btn')
+
+    let resetMode = false
 
     function showError(msg) {
+      successEl.style.display = 'none'
       errorEl.textContent = msg
       errorEl.style.display = 'block'
     }
 
+    function showSuccess(msg) {
+      errorEl.style.display = 'none'
+      successEl.textContent = msg
+      successEl.style.display = 'block'
+    }
+
+    function hideMessages() {
+      errorEl.style.display = 'none'
+      successEl.style.display = 'none'
+    }
+
+    function setResetMode(on) {
+      resetMode = on
+      hideMessages()
+      passwordFg.style.display = on ? 'none' : 'block'
+      document.getElementById('password').required = !on
+      divider.style.display = on ? 'none' : 'flex'
+      googleBtn.style.display = on ? 'none' : 'flex'
+      titleEl.textContent = on ? 'Reset your password' : 'Welcome back'
+      subEl.textContent = on ? "Enter your email and we'll send you a reset link" : 'Sign in to your Par Value account'
+      submitBtn.textContent = on ? 'Send reset link' : 'Sign in'
+      forgotLink.textContent = on ? 'Back to sign in' : 'Forgot password?'
+    }
+
+    forgotLink.addEventListener('click', (e) => {
+      e.preventDefault()
+      setResetMode(!resetMode)
+    })
+
     form.addEventListener('submit', async (e) => {
       e.preventDefault()
+      hideMessages()
+
+      if (resetMode) {
+        submitBtn.textContent = 'Sending...'
+        submitBtn.disabled = true
+
+        const { error } = await supabase.auth.resetPasswordForEmail(
+          document.getElementById('email').value,
+          { redirectTo: window.location.origin + '/reset-password.html' }
+        )
+
+        submitBtn.disabled = false
+        submitBtn.textContent = 'Send reset link'
+
+        if (error) {
+          showError(error.message)
+        } else {
+          showSuccess('Check your email for a link to reset your password.')
+        }
+        return
+      }
+
       submitBtn.textContent = 'Signing in...'
       submitBtn.disabled = true
-      errorEl.style.display = 'none'
 
       const { error } = await supabase.auth.signInWithPassword({
         email: document.getElementById('email').value,

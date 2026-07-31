@@ -51,7 +51,6 @@
     table.scorecard input.sc-input:focus { border-color: var(--pv-green); outline: none; }
     table.scorecard input.sc-input.sc-under { border-color: var(--pv-green); color: var(--pv-green-dark); }
     table.scorecard input.sc-input.sc-over { border-color: #F2B8B5; color: #B42318; }
-    table.scorecard input.sc-input:disabled.sc-locked { background: var(--pv-paper); color: var(--pv-text-tertiary); cursor: not-allowed; opacity: 1; }
 
     .po-submit { width: 100%; padding: 15px; background: var(--pv-green); color: #fff; border: none; border-radius: 10px; font-size: 1.0625rem; font-weight: 700; font-family: var(--font-sans); cursor: pointer; }
     .po-submit:hover { background: var(--pv-green-dark); }
@@ -120,13 +119,11 @@
     <div class="po-msg" id="post-error"></div>
     <div class="po-msg" id="post-success"></div>
 
+    <div class="empty-state" id="no-golfers-msg" style="display:none;">No golfers added yet. Add yourself or your group under the "Golfers" tab to start posting scores.</div>
+
     <div class="fg" id="player-select-fg" style="display:none;">
       <label>Golfer</label>
       <select id="player-select"></select>
-    </div>
-    <div class="fg" id="player-text-fg">
-      <label>Your Name</label>
-      <input type="text" id="player-name" placeholder="e.g. Luke O." autocomplete="name" />
     </div>
 
     <div class="sc-summary" id="sc-summary" style="display:none;">
@@ -134,10 +131,10 @@
       <span class="sc-score" id="sc-summary-score"></span>
     </div>
 
-    <div class="sc-wrap">
+    <div class="sc-wrap" id="sc-front-wrap">
       <table class="scorecard" id="sc-front"></table>
     </div>
-    <div class="sc-wrap">
+    <div class="sc-wrap" id="sc-back-wrap">
       <table class="scorecard" id="sc-back"></table>
     </div>
   </div>
@@ -165,19 +162,6 @@
     // Juniata Golf Club (Philadelphia) — par per hole, holes 1–18
     const PARS = [3, 4, 5, 4, 4, 5, 4, 3, 4, 3, 4, 3, 3, 4, 3, 4, 4, 3]
     const COURSE_PAR = PARS.reduce((a, b) => a + b, 0)
-
-    // Each device gets a lightweight, invisible anonymous session so the database
-    // can enforce that you can only post or edit scores your own device created.
-    let myUserId = null
-    {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session) {
-        myUserId = session.user.id
-      } else {
-        const { data, error } = await supabase.auth.signInAnonymously()
-        if (!error) myUserId = data.user.id
-      }
-    }
 
     // --- Scorecard grid ---
     function buildScorecardTable(el, startHole, endHole, label, totalLabel) {
@@ -219,9 +203,7 @@
       if (!name) {
         scInputs.forEach(input => {
           input.value = ''
-          input.disabled = false
-          input.title = ''
-          input.classList.remove('sc-under', 'sc-over', 'sc-locked')
+          input.classList.remove('sc-under', 'sc-over')
         })
         summaryEl.style.display = 'none'
         updateScorecardTotals()
@@ -230,27 +212,19 @@
 
       const { data, error } = await supabase
         .from('pierogi_scores')
-        .select('hole_number, strokes, created_by')
+        .select('hole_number, strokes')
         .eq('player_name', name)
 
       if (name !== currentScorecardName) return // a newer load started while this one was in flight
 
       const scores = {}
-      const owners = {}
       if (!error && data) {
-        for (const row of data) {
-          scores[row.hole_number] = row.strokes
-          owners[row.hole_number] = row.created_by
-        }
+        for (const row of data) scores[row.hole_number] = row.strokes
       }
 
       scInputs.forEach(input => {
         const hole = parseInt(input.dataset.hole, 10)
-        const lockedByOther = owners[hole] != null && owners[hole] !== myUserId
         input.value = scores[hole] != null ? scores[hole] : ''
-        input.disabled = lockedByOther
-        input.title = lockedByOther ? 'Posted from another device — can only be edited there' : ''
-        input.classList.toggle('sc-locked', lockedByOther)
         markInputRelative(input, hole, scores[hole])
       })
 
@@ -302,64 +276,40 @@
       summaryScoreEl.className = 'sc-score' + (relative === 0 ? ' even' : relative > 0 ? ' over' : '')
     }
 
-    const OWNERSHIP_DENIED_MSG = "That score was posted from another device and can only be edited there."
-
     async function saveHoleScore(hole, value, input) {
       const name = currentPlayerName()
-      if (!name) { showError('Choose or enter a golfer first.'); input.value = ''; return }
+      if (!name) { showError('Select a golfer first.'); input.value = ''; return }
 
       input.disabled = true
 
       if (value === null) {
-        const { data, error } = await supabase
+        const { error } = await supabase
           .from('pierogi_scores')
           .delete()
           .eq('player_name', name)
           .eq('hole_number', hole)
-          .select()
-
-        if (error) {
-          input.disabled = false
-          showError(error.message)
-          return
-        }
-        if (!data || data.length === 0) {
-          // Nothing deleted — either it never existed, or RLS silently blocked
-          // deleting a row owned by a different device.
-          showError(OWNERSHIP_DENIED_MSG)
-          await loadScorecard(name)
-          return
-        }
 
         input.disabled = false
+        if (error) { showError(error.message); return }
         markInputRelative(input, hole, null)
         updateScorecardTotals()
         return
       }
 
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('pierogi_scores')
         .upsert(
           { player_name: name, hole_number: hole, strokes: value, updated_at: new Date().toISOString() },
           { onConflict: 'player_name,hole_number' }
         )
-        .select()
-
-      if (error) {
-        input.disabled = false
-        showError(error.message.includes('row-level security') ? OWNERSHIP_DENIED_MSG : error.message)
-        return
-      }
-
-      if (!data || data.length === 0) {
-        // Upsert hit an existing row owned by a different device — RLS
-        // silently filtered the update instead of erroring.
-        showError(OWNERSHIP_DENIED_MSG)
-        await loadScorecard(name)
-        return
-      }
 
       input.disabled = false
+
+      if (error) {
+        showError(error.message)
+        return
+      }
+
       localStorage.setItem('pierogi_player_name', name)
       markInputRelative(input, hole, value)
       updateScorecardTotals()
@@ -391,10 +341,10 @@
     }
 
     const playerSelectFg = document.getElementById('player-select-fg')
-    const playerTextFg = document.getElementById('player-text-fg')
     const playerSelect = document.getElementById('player-select')
-    const playerNameInput = document.getElementById('player-name')
-    const OTHER_VALUE = '__other__'
+    const noGolfersMsg = document.getElementById('no-golfers-msg')
+    const scFrontWrap = document.getElementById('sc-front-wrap')
+    const scBackWrap = document.getElementById('sc-back-wrap')
 
     function refreshPlayerPicker() {
       const golfers = getGolfers()
@@ -405,57 +355,42 @@
         opt.textContent = name
         playerSelect.appendChild(opt)
       })
-      const otherOpt = document.createElement('option')
-      otherOpt.value = OTHER_VALUE
-      otherOpt.textContent = 'Someone else…'
-      playerSelect.appendChild(otherOpt)
 
-      if (golfers.length > 0) {
-        playerSelectFg.style.display = 'block'
+      const hasGolfers = golfers.length > 0
+      playerSelectFg.style.display = hasGolfers ? 'block' : 'none'
+      noGolfersMsg.style.display = hasGolfers ? 'none' : 'block'
+      scFrontWrap.style.display = hasGolfers ? 'block' : 'none'
+      scBackWrap.style.display = hasGolfers ? 'block' : 'none'
+
+      if (hasGolfers) {
         const savedName = localStorage.getItem('pierogi_player_name')
         playerSelect.value = golfers.includes(savedName) ? savedName : golfers[0]
-        updatePlayerTextVisibility()
-      } else {
-        playerSelectFg.style.display = 'none'
-        playerTextFg.style.display = 'block'
       }
       loadScorecard(currentPlayerName())
     }
 
-    function updatePlayerTextVisibility() {
-      playerTextFg.style.display = playerSelect.value === OTHER_VALUE ? 'block' : 'none'
-    }
-
-    playerSelect.addEventListener('change', () => {
-      updatePlayerTextVisibility()
-      loadScorecard(currentPlayerName())
-    })
-
-    playerNameInput.addEventListener('blur', () => {
-      if (playerTextFg.style.display !== 'none') loadScorecard(currentPlayerName())
-    })
+    playerSelect.addEventListener('change', () => loadScorecard(currentPlayerName()))
 
     function currentPlayerName() {
-      if (playerSelectFg.style.display !== 'none' && playerSelect.value !== OTHER_VALUE) {
-        return playerSelect.value
-      }
-      return playerNameInput.value.trim()
+      return playerSelect.value || null
     }
 
     window.viewScorecard = function (name) {
       showView('post')
 
-      const golfers = getGolfers()
-      if (golfers.includes(name)) {
-        playerSelectFg.style.display = 'block'
-        playerSelect.value = name
-        updatePlayerTextVisibility()
-      } else {
-        playerSelectFg.style.display = golfers.length > 0 ? 'block' : 'none'
-        if (golfers.length > 0) playerSelect.value = OTHER_VALUE
-        playerTextFg.style.display = 'block'
-        playerNameInput.value = name
+      if (!getGolfers().includes(name)) {
+        // Not in this device's roster (e.g. clicked from the leaderboard) —
+        // add a temporary, unsaved option so it can still be selected and edited.
+        const opt = document.createElement('option')
+        opt.value = name
+        opt.textContent = name
+        playerSelect.appendChild(opt)
       }
+      playerSelectFg.style.display = 'block'
+      noGolfersMsg.style.display = 'none'
+      scFrontWrap.style.display = 'block'
+      scBackWrap.style.display = 'block'
+      playerSelect.value = name
       loadScorecard(name)
     }
 
@@ -475,11 +410,37 @@
         </div>
       `).join('')
       listEl.querySelectorAll('.golfer-remove').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const golfers = getGolfers().filter(n => n !== btn.dataset.name)
+        btn.addEventListener('click', async () => {
+          const name = btn.dataset.name
+          const confirmed = confirm(`Remove ${name}? This also deletes their posted scores everywhere on the site — this can't be undone.`)
+          if (!confirmed) return
+
+          btn.disabled = true
+          btn.textContent = 'Removing…'
+
+          const { error } = await supabase
+            .from('pierogi_scores')
+            .delete()
+            .eq('player_name', name)
+
+          if (error) {
+            golferErrorEl.textContent = `Couldn't remove ${name}: ${error.message}`
+            golferErrorEl.style.display = 'block'
+            btn.disabled = false
+            btn.textContent = 'Remove'
+            return
+          }
+
+          const golfers = getGolfers().filter(n => n !== name)
           saveGolfers(golfers)
+
+          if (localStorage.getItem('pierogi_player_name') === name) {
+            localStorage.removeItem('pierogi_player_name')
+          }
+
           renderGolferList()
-          refreshPlayerPicker()
+          refreshPlayerPicker() // also reloads whichever scorecard is now selected
+          loadLeaderboard()
         })
       })
     }
@@ -513,8 +474,6 @@
       refreshPlayerPicker()
     })
 
-    const savedName = localStorage.getItem('pierogi_player_name')
-    if (savedName) playerNameInput.value = savedName
     refreshPlayerPicker()
 
     window.showView = function (view) {

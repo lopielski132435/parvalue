@@ -119,7 +119,7 @@
     <div class="po-msg" id="post-error"></div>
     <div class="po-msg" id="post-success"></div>
 
-    <div class="empty-state" id="no-golfers-msg" style="display:none;">No golfers added yet. Add yourself or your group under the "Golfers" tab to start posting scores.</div>
+    <div class="empty-state" id="no-golfers-msg" style="display:none;">No golfers added yet. Add participants under the "Golfers" tab to start posting scores.</div>
 
     <div class="fg" id="player-select-fg" style="display:none;">
       <label>Golfer</label>
@@ -150,9 +150,9 @@
     </div>
     <button type="button" class="po-submit" id="add-golfer-btn" style="margin-bottom:24px;">Add Golfer</button>
 
-    <div class="section-label">Your Golfers</div>
+    <div class="section-label">Golfers</div>
     <div class="golfer-list" id="golfer-list">
-      <div class="empty-state" style="padding:20px 16px;">No golfers added yet. Add yourself or your group to speed up posting scores.</div>
+      <div class="empty-state" style="padding:20px 16px;">No golfers added yet. Add participants below — everyone at the event will see this list.</div>
     </div>
   </div>
 
@@ -331,13 +331,13 @@
       })
     })
 
-    // --- My Golfers ---
-    function getGolfers() {
-      try { return JSON.parse(localStorage.getItem('pierogi_my_golfers') || '[]') }
-      catch { return [] }
-    }
-    function saveGolfers(list) {
-      localStorage.setItem('pierogi_my_golfers', JSON.stringify(list))
+    // --- Golfers (shared, event-wide roster) ---
+    async function getGolfers() {
+      const { data, error } = await supabase
+        .from('pierogi_golfers')
+        .select('full_name')
+        .order('full_name')
+      return error || !data ? [] : data.map(r => r.full_name)
     }
 
     const playerSelectFg = document.getElementById('player-select-fg')
@@ -346,8 +346,8 @@
     const scFrontWrap = document.getElementById('sc-front-wrap')
     const scBackWrap = document.getElementById('sc-back-wrap')
 
-    function refreshPlayerPicker() {
-      const golfers = getGolfers()
+    async function refreshPlayerPicker() {
+      const golfers = await getGolfers()
       playerSelect.innerHTML = ''
       golfers.forEach(name => {
         const opt = document.createElement('option')
@@ -375,12 +375,13 @@
       return playerSelect.value || null
     }
 
-    window.viewScorecard = function (name) {
+    window.viewScorecard = async function (name) {
       showView('post')
 
-      if (!getGolfers().includes(name)) {
-        // Not in this device's roster (e.g. clicked from the leaderboard) —
-        // add a temporary, unsaved option so it can still be selected and edited.
+      const golfers = await getGolfers()
+      if (!golfers.includes(name)) {
+        // Shouldn't normally happen — the leaderboard only lists golfers — but
+        // fall back to a temporary option just in case of a race with a removal.
         const opt = document.createElement('option')
         opt.value = name
         opt.textContent = name
@@ -396,11 +397,11 @@
 
     const golferErrorEl = document.getElementById('golfer-error')
 
-    function renderGolferList() {
-      const golfers = getGolfers()
+    async function renderGolferList() {
+      const golfers = await getGolfers()
       const listEl = document.getElementById('golfer-list')
       if (golfers.length === 0) {
-        listEl.innerHTML = `<div class="empty-state" style="padding:20px 16px;">No golfers added yet. Add yourself or your group to speed up posting scores.</div>`
+        listEl.innerHTML = `<div class="empty-state" style="padding:20px 16px;">No golfers added yet. Add participants below — everyone at the event will see this list.</div>`
         return
       }
       listEl.innerHTML = golfers.map(name => `
@@ -418,21 +419,31 @@
           btn.disabled = true
           btn.textContent = 'Removing…'
 
-          const { error } = await supabase
+          const { error: scoreErr } = await supabase
             .from('pierogi_scores')
             .delete()
             .eq('player_name', name)
 
-          if (error) {
-            golferErrorEl.textContent = `Couldn't remove ${name}: ${error.message}`
+          if (scoreErr) {
+            golferErrorEl.textContent = `Couldn't remove ${name}: ${scoreErr.message}`
             golferErrorEl.style.display = 'block'
             btn.disabled = false
             btn.textContent = 'Remove'
             return
           }
 
-          const golfers = getGolfers().filter(n => n !== name)
-          saveGolfers(golfers)
+          const { error: golferErr } = await supabase
+            .from('pierogi_golfers')
+            .delete()
+            .eq('full_name', name)
+
+          if (golferErr) {
+            golferErrorEl.textContent = `Couldn't remove ${name}: ${golferErr.message}`
+            golferErrorEl.style.display = 'block'
+            btn.disabled = false
+            btn.textContent = 'Remove'
+            return
+          }
 
           if (localStorage.getItem('pierogi_player_name') === name) {
             localStorage.removeItem('pierogi_player_name')
@@ -445,7 +456,7 @@
       })
     }
 
-    document.getElementById('add-golfer-btn').addEventListener('click', () => {
+    document.getElementById('add-golfer-btn').addEventListener('click', async () => {
       golferErrorEl.style.display = 'none'
       const first = document.getElementById('golfer-first').value.trim()
       const last = document.getElementById('golfer-last').value.trim()
@@ -456,18 +467,26 @@
         return
       }
 
-      const fullName = `${first} ${last}`
-      const golfers = getGolfers()
-      const isDuplicate = golfers.some(n => n.toLowerCase() === fullName.toLowerCase())
+      const addBtn = document.getElementById('add-golfer-btn')
+      addBtn.disabled = true
+      addBtn.textContent = 'Adding…'
 
-      if (isDuplicate) {
-        golferErrorEl.textContent = `${fullName} is already on your list.`
+      const fullName = `${first} ${last}`
+      const { error } = await supabase
+        .from('pierogi_golfers')
+        .insert({ full_name: fullName })
+
+      addBtn.disabled = false
+      addBtn.textContent = 'Add Golfer'
+
+      if (error) {
+        golferErrorEl.textContent = error.code === '23505'
+          ? `${fullName} is already on the list.`
+          : error.message
         golferErrorEl.style.display = 'block'
         return
       }
 
-      golfers.push(fullName)
-      saveGolfers(golfers)
       document.getElementById('golfer-first').value = ''
       document.getElementById('golfer-last').value = ''
       renderGolferList()
@@ -504,9 +523,10 @@
     }
 
     async function loadLeaderboard() {
-      const { data, error } = await supabase
-        .from('pierogi_scores')
-        .select('player_name, strokes, hole_number')
+      const [{ data, error }, golfers] = await Promise.all([
+        supabase.from('pierogi_scores').select('player_name, strokes, hole_number'),
+        getGolfers(),
+      ])
 
       const boardEl = document.getElementById('board-content')
 
@@ -515,19 +535,22 @@
         return
       }
 
-      if (!data || data.length === 0) {
-        boardEl.innerHTML = `<div class="empty-state">No scores posted yet.<br>Be the first!</div>`
-        document.getElementById('updated-at').innerHTML = ''
-        return
-      }
+      const golferSet = new Set(golfers.map(n => n.toLowerCase()))
 
       const players = {}
-      for (const row of data) {
+      for (const row of (data || [])) {
+        if (!golferSet.has(row.player_name.toLowerCase())) continue // only current golfers show up
         if (!players[row.player_name]) players[row.player_name] = { strokes: 0, par: 0, thru: 0 }
         const par = PARS[row.hole_number - 1] || 0
         players[row.player_name].strokes += row.strokes
         players[row.player_name].par += par
         players[row.player_name].thru += 1
+      }
+
+      if (Object.keys(players).length === 0) {
+        boardEl.innerHTML = `<div class="empty-state">No scores posted yet.<br>Be the first!</div>`
+        document.getElementById('updated-at').innerHTML = ''
+        return
       }
 
       const ranked = Object.entries(players)
@@ -583,6 +606,15 @@
       .channel('pierogi_scores_changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'pierogi_scores' }, () => {
         loadLeaderboard()
+      })
+      .subscribe()
+
+    supabase
+      .channel('pierogi_golfers_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'pierogi_golfers' }, () => {
+        loadLeaderboard()
+        renderGolferList()
+        refreshPlayerPicker()
       })
       .subscribe()
 

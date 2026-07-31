@@ -51,6 +51,7 @@
     table.scorecard input.sc-input:focus { border-color: var(--pv-green); outline: none; }
     table.scorecard input.sc-input.sc-under { border-color: var(--pv-green); color: var(--pv-green-dark); }
     table.scorecard input.sc-input.sc-over { border-color: #F2B8B5; color: #B42318; }
+    table.scorecard input.sc-input:disabled.sc-locked { background: var(--pv-paper); color: var(--pv-text-tertiary); cursor: not-allowed; opacity: 1; }
 
     .po-submit { width: 100%; padding: 15px; background: var(--pv-green); color: #fff; border: none; border-radius: 10px; font-size: 1.0625rem; font-weight: 700; font-family: var(--font-sans); cursor: pointer; }
     .po-submit:hover { background: var(--pv-green-dark); }
@@ -165,6 +166,19 @@
     const PARS = [3, 4, 5, 4, 4, 5, 4, 3, 4, 3, 4, 3, 3, 4, 3, 4, 4, 3]
     const COURSE_PAR = PARS.reduce((a, b) => a + b, 0)
 
+    // Each device gets a lightweight, invisible anonymous session so the database
+    // can enforce that you can only post or edit scores your own device created.
+    let myUserId = null
+    {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
+        myUserId = session.user.id
+      } else {
+        const { data, error } = await supabase.auth.signInAnonymously()
+        if (!error) myUserId = data.user.id
+      }
+    }
+
     // --- Scorecard grid ---
     function buildScorecardTable(el, startHole, endHole, label, totalLabel) {
       const holes = []
@@ -203,7 +217,12 @@
       const summaryEl = document.getElementById('sc-summary')
 
       if (!name) {
-        scInputs.forEach(input => { input.value = ''; input.classList.remove('sc-under', 'sc-over') })
+        scInputs.forEach(input => {
+          input.value = ''
+          input.disabled = false
+          input.title = ''
+          input.classList.remove('sc-under', 'sc-over', 'sc-locked')
+        })
         summaryEl.style.display = 'none'
         updateScorecardTotals()
         return
@@ -211,19 +230,27 @@
 
       const { data, error } = await supabase
         .from('pierogi_scores')
-        .select('hole_number, strokes')
+        .select('hole_number, strokes, created_by')
         .eq('player_name', name)
 
       if (name !== currentScorecardName) return // a newer load started while this one was in flight
 
       const scores = {}
+      const owners = {}
       if (!error && data) {
-        for (const row of data) scores[row.hole_number] = row.strokes
+        for (const row of data) {
+          scores[row.hole_number] = row.strokes
+          owners[row.hole_number] = row.created_by
+        }
       }
 
       scInputs.forEach(input => {
         const hole = parseInt(input.dataset.hole, 10)
+        const lockedByOther = owners[hole] != null && owners[hole] !== myUserId
         input.value = scores[hole] != null ? scores[hole] : ''
+        input.disabled = lockedByOther
+        input.title = lockedByOther ? 'Posted from another device — can only be edited there' : ''
+        input.classList.toggle('sc-locked', lockedByOther)
         markInputRelative(input, hole, scores[hole])
       })
 
@@ -275,6 +302,8 @@
       summaryScoreEl.className = 'sc-score' + (relative === 0 ? ' even' : relative > 0 ? ' over' : '')
     }
 
+    const OWNERSHIP_DENIED_MSG = "That score was posted from another device and can only be edited there."
+
     async function saveHoleScore(hole, value, input) {
       const name = currentPlayerName()
       if (!name) { showError('Choose or enter a golfer first.'); input.value = ''; return }
@@ -282,32 +311,55 @@
       input.disabled = true
 
       if (value === null) {
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from('pierogi_scores')
           .delete()
           .eq('player_name', name)
           .eq('hole_number', hole)
+          .select()
+
+        if (error) {
+          input.disabled = false
+          showError(error.message)
+          return
+        }
+        if (!data || data.length === 0) {
+          // Nothing deleted — either it never existed, or RLS silently blocked
+          // deleting a row owned by a different device.
+          showError(OWNERSHIP_DENIED_MSG)
+          await loadScorecard(name)
+          return
+        }
+
         input.disabled = false
-        if (error) showError(error.message)
         markInputRelative(input, hole, null)
         updateScorecardTotals()
         return
       }
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('pierogi_scores')
         .upsert(
           { player_name: name, hole_number: hole, strokes: value, updated_at: new Date().toISOString() },
           { onConflict: 'player_name,hole_number' }
         )
-
-      input.disabled = false
+        .select()
 
       if (error) {
-        showError(error.message)
+        input.disabled = false
+        showError(error.message.includes('row-level security') ? OWNERSHIP_DENIED_MSG : error.message)
         return
       }
 
+      if (!data || data.length === 0) {
+        // Upsert hit an existing row owned by a different device — RLS
+        // silently filtered the update instead of erroring.
+        showError(OWNERSHIP_DENIED_MSG)
+        await loadScorecard(name)
+        return
+      }
+
+      input.disabled = false
       localStorage.setItem('pierogi_player_name', name)
       markInputRelative(input, hole, value)
       updateScorecardTotals()

@@ -27,9 +27,30 @@
     .fg input, .fg select { width: 100%; padding: 14px; border: 1px solid var(--pv-border); border-radius: 10px; font-size: 1.125rem; font-family: var(--font-sans); background: var(--pv-surface); color: var(--pv-ink); outline: none; }
     .fg input:focus, .fg select:focus { border-color: var(--pv-green); }
 
-    .stepper { display: flex; align-items: center; gap: 12px; }
-    .stepper button { width: 48px; height: 48px; border-radius: 10px; border: 1px solid var(--pv-border); background: var(--pv-surface); font-size: 1.5rem; font-weight: 600; color: var(--pv-ink); cursor: pointer; flex-shrink: 0; }
-    .stepper input { text-align: center; font-weight: 700; font-size: 1.375rem; }
+    .sc-summary { display: flex; align-items: baseline; justify-content: space-between; padding: 12px 14px; background: var(--pv-paper); border: 1px solid var(--pv-border); border-radius: 10px; margin-bottom: 16px; }
+    .sc-summary .sc-player { font-weight: 700; color: var(--pv-ink); font-size: 0.9375rem; }
+    .sc-summary .sc-score { font-weight: 700; font-size: 1.125rem; color: var(--pv-green-dark); }
+    .sc-summary .sc-score.over { color: #B42318; }
+    .sc-summary .sc-score.even { color: var(--pv-text-secondary); }
+
+    .sc-wrap { overflow-x: auto; margin-bottom: 16px; -webkit-overflow-scrolling: touch; }
+    table.scorecard { border-collapse: collapse; width: 100%; min-width: 380px; }
+    table.scorecard caption { text-align: left; font-size: 0.6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--pv-text-tertiary); padding-bottom: 6px; }
+    table.scorecard th, table.scorecard td { text-align: center; padding: 6px 2px; font-size: 0.8125rem; }
+    table.scorecard th { color: var(--pv-text-tertiary); font-weight: 600; }
+    table.scorecard .sc-row-label { text-align: left; font-weight: 600; color: var(--pv-text-secondary); font-size: 0.75rem; padding-right: 6px; white-space: nowrap; }
+    table.scorecard .sc-par-row td { color: var(--pv-text-secondary); border-bottom: 1px solid var(--pv-border); padding-bottom: 8px; }
+    table.scorecard .sc-total-col { font-weight: 700; color: var(--pv-ink); }
+    table.scorecard input.sc-input {
+      width: 34px; height: 38px; text-align: center; font-size: 1rem; font-weight: 700;
+      border: 1px solid var(--pv-border); border-radius: 7px; padding: 0; color: var(--pv-ink);
+      background: var(--pv-surface); -moz-appearance: textfield;
+    }
+    table.scorecard input.sc-input::-webkit-outer-spin-button,
+    table.scorecard input.sc-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    table.scorecard input.sc-input:focus { border-color: var(--pv-green); outline: none; }
+    table.scorecard input.sc-input.sc-under { border-color: var(--pv-green); color: var(--pv-green-dark); }
+    table.scorecard input.sc-input.sc-over { border-color: #F2B8B5; color: #B42318; }
 
     .po-submit { width: 100%; padding: 15px; background: var(--pv-green); color: #fff; border: none; border-radius: 10px; font-size: 1.0625rem; font-weight: 700; font-family: var(--font-sans); cursor: pointer; }
     .po-submit:hover { background: var(--pv-green-dark); }
@@ -49,6 +70,8 @@
     table.board tr:nth-child(2) .rank { color: #8C8C8C; }
     table.board tr:nth-child(3) .rank { color: #A0622D; }
     table.board .name { font-weight: 600; color: var(--pv-ink); }
+    .name-link { background: none; border: none; padding: 0; font: inherit; font-weight: 600; color: var(--pv-ink); cursor: pointer; text-decoration: underline; text-decoration-color: var(--pv-border); text-underline-offset: 3px; }
+    .name-link:hover { color: var(--pv-green-dark); text-decoration-color: var(--pv-green); }
     table.board .total { font-weight: 700; color: var(--pv-green-dark); }
     table.board .total.over { color: #B42318; }
     table.board .total.even { color: var(--pv-text-secondary); }
@@ -79,7 +102,7 @@
 
   <div class="po-tabs">
     <button class="po-tab active" id="tab-board" onclick="showView('board')">Leaderboard</button>
-    <button class="po-tab" id="tab-post" onclick="showView('post')">Post a Score</button>
+    <button class="po-tab" id="tab-post" onclick="showView('post')">Scorecard</button>
     <button class="po-tab" id="tab-golfers" onclick="showView('golfers')">Golfers</button>
   </div>
 
@@ -91,37 +114,31 @@
     <div class="updated-at" id="updated-at"></div>
   </div>
 
-  <!-- Post score view -->
+  <!-- Scorecard view -->
   <div id="view-post" class="po-card" style="display:none;">
     <div class="po-msg" id="post-error"></div>
     <div class="po-msg" id="post-success"></div>
 
-    <form id="score-form">
-      <div class="fg" id="player-select-fg" style="display:none;">
-        <label>Golfer</label>
-        <select id="player-select"></select>
-      </div>
-      <div class="fg" id="player-text-fg">
-        <label>Your Name</label>
-        <input type="text" id="player-name" placeholder="e.g. Luke O." autocomplete="name" />
-      </div>
+    <div class="fg" id="player-select-fg" style="display:none;">
+      <label>Golfer</label>
+      <select id="player-select"></select>
+    </div>
+    <div class="fg" id="player-text-fg">
+      <label>Your Name</label>
+      <input type="text" id="player-name" placeholder="e.g. Luke O." autocomplete="name" />
+    </div>
 
-      <div class="fg">
-        <label>Hole <span id="hole-par" style="text-transform:none; font-weight:400; color:var(--pv-text-secondary);"></span></label>
-        <select id="hole-number" required></select>
-      </div>
+    <div class="sc-summary" id="sc-summary" style="display:none;">
+      <span class="sc-player" id="sc-summary-name"></span>
+      <span class="sc-score" id="sc-summary-score"></span>
+    </div>
 
-      <div class="fg">
-        <label>Strokes</label>
-        <div class="stepper">
-          <button type="button" onclick="bumpStrokes(-1)" aria-label="Decrease">–</button>
-          <input type="number" id="strokes" min="1" max="20" value="4" required inputmode="numeric" />
-          <button type="button" onclick="bumpStrokes(1)" aria-label="Increase">+</button>
-        </div>
-      </div>
-
-      <button type="submit" class="po-submit" id="submit-btn">Post Score</button>
-    </form>
+    <div class="sc-wrap">
+      <table class="scorecard" id="sc-front"></table>
+    </div>
+    <div class="sc-wrap">
+      <table class="scorecard" id="sc-back"></table>
+    </div>
   </div>
 
   <!-- My Golfers view -->
@@ -148,20 +165,168 @@
     const PARS = [3, 4, 5, 4, 4, 5, 4, 3, 4, 3, 4, 3, 3, 4, 3, 4, 4, 3]
     const COURSE_PAR = PARS.reduce((a, b) => a + b, 0)
 
-    const holeSelect = document.getElementById('hole-number')
-    const holeParEl = document.getElementById('hole-par')
-    for (let i = 1; i <= 18; i++) {
-      const opt = document.createElement('option')
-      opt.value = i
-      opt.textContent = 'Hole ' + i + ' — Par ' + PARS[i - 1]
-      holeSelect.appendChild(opt)
+    // --- Scorecard grid ---
+    function buildScorecardTable(el, startHole, endHole, label, totalLabel) {
+      const holes = []
+      for (let h = startHole; h <= endHole; h++) holes.push(h)
+      el.innerHTML = `
+        <caption>${label}</caption>
+        <tr>
+          <th class="sc-row-label">Hole</th>
+          ${holes.map(h => `<th>${h}</th>`).join('')}
+          <th class="sc-total-col">${totalLabel}</th>
+        </tr>
+        <tr class="sc-par-row">
+          <td class="sc-row-label">Par</td>
+          ${holes.map(h => `<td>${PARS[h - 1]}</td>`).join('')}
+          <td class="sc-total-col" id="${el.id}-par-total">${holes.reduce((s, h) => s + PARS[h - 1], 0)}</td>
+        </tr>
+        <tr>
+          <td class="sc-row-label">Score</td>
+          ${holes.map(h => `<td><input class="sc-input" type="number" inputmode="numeric" min="1" max="20" data-hole="${h}" /></td>`).join('')}
+          <td class="sc-total-col" id="${el.id}-score-total">–</td>
+        </tr>
+      `
     }
 
-    function updateHolePar() {
-      holeParEl.textContent = '(Par ' + PARS[parseInt(holeSelect.value, 10) - 1] + ')'
+    const scFrontEl = document.getElementById('sc-front')
+    const scBackEl = document.getElementById('sc-back')
+    buildScorecardTable(scFrontEl, 1, 9, 'Front 9', 'Out')
+    buildScorecardTable(scBackEl, 10, 18, 'Back 9', 'In')
+
+    const scInputs = Array.from(document.querySelectorAll('.sc-input'))
+
+    let currentScorecardName = null
+
+    async function loadScorecard(name) {
+      currentScorecardName = name
+      const summaryEl = document.getElementById('sc-summary')
+
+      if (!name) {
+        scInputs.forEach(input => { input.value = ''; input.classList.remove('sc-under', 'sc-over') })
+        summaryEl.style.display = 'none'
+        updateScorecardTotals()
+        return
+      }
+
+      const { data, error } = await supabase
+        .from('pierogi_scores')
+        .select('hole_number, strokes')
+        .eq('player_name', name)
+
+      if (name !== currentScorecardName) return // a newer load started while this one was in flight
+
+      const scores = {}
+      if (!error && data) {
+        for (const row of data) scores[row.hole_number] = row.strokes
+      }
+
+      scInputs.forEach(input => {
+        const hole = parseInt(input.dataset.hole, 10)
+        input.value = scores[hole] != null ? scores[hole] : ''
+        markInputRelative(input, hole, scores[hole])
+      })
+
+      summaryEl.style.display = 'flex'
+      document.getElementById('sc-summary-name').textContent = name
+      updateScorecardTotals()
     }
-    holeSelect.addEventListener('change', updateHolePar)
-    updateHolePar()
+
+    function markInputRelative(input, hole, strokes) {
+      input.classList.remove('sc-under', 'sc-over')
+      if (strokes == null) return
+      const relative = strokes - PARS[hole - 1]
+      if (relative < 0) input.classList.add('sc-under')
+      if (relative > 0) input.classList.add('sc-over')
+    }
+
+    function updateScorecardTotals() {
+      let outStrokes = 0, outCount = 0, inStrokes = 0, inCount = 0
+
+      scInputs.forEach(input => {
+        const hole = parseInt(input.dataset.hole, 10)
+        const val = input.value === '' ? null : parseInt(input.value, 10)
+        if (val == null || isNaN(val)) return
+        if (hole <= 9) { outStrokes += val; outCount++ }
+        else { inStrokes += val; inCount++ }
+      })
+
+      document.getElementById('sc-front-score-total').textContent = outCount > 0 ? outStrokes : '–'
+      document.getElementById('sc-back-score-total').textContent = inCount > 0 ? inStrokes : '–'
+
+      const totalStrokes = outStrokes + inStrokes
+      const totalThru = outCount + inCount
+      const summaryScoreEl = document.getElementById('sc-summary-score')
+
+      if (totalThru === 0) {
+        summaryScoreEl.textContent = 'No scores yet'
+        summaryScoreEl.className = 'sc-score'
+        return
+      }
+
+      let parSoFar = 0
+      scInputs.forEach(input => {
+        const hole = parseInt(input.dataset.hole, 10)
+        if (input.value !== '') parSoFar += PARS[hole - 1]
+      })
+      const relative = totalStrokes - parSoFar
+      const relText = relative === 0 ? 'E' : (relative > 0 ? '+' + relative : String(relative))
+      summaryScoreEl.textContent = `Thru ${totalThru} · ${relText}`
+      summaryScoreEl.className = 'sc-score' + (relative === 0 ? ' even' : relative > 0 ? ' over' : '')
+    }
+
+    async function saveHoleScore(hole, value, input) {
+      const name = currentPlayerName()
+      if (!name) { showError('Choose or enter a golfer first.'); input.value = ''; return }
+
+      input.disabled = true
+
+      if (value === null) {
+        const { error } = await supabase
+          .from('pierogi_scores')
+          .delete()
+          .eq('player_name', name)
+          .eq('hole_number', hole)
+        input.disabled = false
+        if (error) showError(error.message)
+        markInputRelative(input, hole, null)
+        updateScorecardTotals()
+        return
+      }
+
+      const { error } = await supabase
+        .from('pierogi_scores')
+        .upsert(
+          { player_name: name, hole_number: hole, strokes: value, updated_at: new Date().toISOString() },
+          { onConflict: 'player_name,hole_number' }
+        )
+
+      input.disabled = false
+
+      if (error) {
+        showError(error.message)
+        return
+      }
+
+      localStorage.setItem('pierogi_player_name', name)
+      markInputRelative(input, hole, value)
+      updateScorecardTotals()
+    }
+
+    scInputs.forEach(input => {
+      input.addEventListener('change', () => {
+        const hole = parseInt(input.dataset.hole, 10)
+        const raw = input.value.trim()
+        if (raw === '') { saveHoleScore(hole, null, input); return }
+        const strokes = parseInt(raw, 10)
+        if (isNaN(strokes) || strokes < 1 || strokes > 20) {
+          showError('Strokes must be between 1 and 20.')
+          input.value = ''
+          return
+        }
+        saveHoleScore(hole, strokes, input)
+      })
+    })
 
     // --- My Golfers ---
     function getGolfers() {
@@ -201,19 +366,44 @@
         playerSelectFg.style.display = 'none'
         playerTextFg.style.display = 'block'
       }
+      loadScorecard(currentPlayerName())
     }
 
     function updatePlayerTextVisibility() {
       playerTextFg.style.display = playerSelect.value === OTHER_VALUE ? 'block' : 'none'
     }
 
-    playerSelect.addEventListener('change', updatePlayerTextVisibility)
+    playerSelect.addEventListener('change', () => {
+      updatePlayerTextVisibility()
+      loadScorecard(currentPlayerName())
+    })
+
+    playerNameInput.addEventListener('blur', () => {
+      if (playerTextFg.style.display !== 'none') loadScorecard(currentPlayerName())
+    })
 
     function currentPlayerName() {
       if (playerSelectFg.style.display !== 'none' && playerSelect.value !== OTHER_VALUE) {
         return playerSelect.value
       }
       return playerNameInput.value.trim()
+    }
+
+    window.viewScorecard = function (name) {
+      showView('post')
+
+      const golfers = getGolfers()
+      if (golfers.includes(name)) {
+        playerSelectFg.style.display = 'block'
+        playerSelect.value = name
+        updatePlayerTextVisibility()
+      } else {
+        playerSelectFg.style.display = golfers.length > 0 ? 'block' : 'none'
+        if (golfers.length > 0) playerSelect.value = OTHER_VALUE
+        playerTextFg.style.display = 'block'
+        playerNameInput.value = name
+      }
+      loadScorecard(name)
     }
 
     const golferErrorEl = document.getElementById('golfer-error')
@@ -274,16 +464,6 @@
     if (savedName) playerNameInput.value = savedName
     refreshPlayerPicker()
 
-    const savedHole = localStorage.getItem('pierogi_last_hole')
-    if (savedHole) holeSelect.value = Math.min(18, parseInt(savedHole, 10) + 1) || 1
-    updateHolePar()
-
-    window.bumpStrokes = function (delta) {
-      const el = document.getElementById('strokes')
-      const next = Math.max(1, Math.min(20, parseInt(el.value || '4', 10) + delta))
-      el.value = next
-    }
-
     window.showView = function (view) {
       document.getElementById('view-board').style.display = view === 'board' ? 'block' : 'none'
       document.getElementById('view-post').style.display = view === 'post' ? 'block' : 'none'
@@ -310,41 +490,6 @@
       successEl.textContent = msg
       successEl.style.display = 'block'
     }
-
-    document.getElementById('score-form').addEventListener('submit', async (e) => {
-      e.preventDefault()
-      const submitBtn = document.getElementById('submit-btn')
-      const player_name = currentPlayerName()
-      const hole_number = parseInt(holeSelect.value, 10)
-      const strokes = parseInt(document.getElementById('strokes').value, 10)
-
-      if (!player_name) { showError('Enter your name.'); return }
-
-      submitBtn.disabled = true
-      submitBtn.textContent = 'Posting…'
-      errorEl.style.display = 'none'
-      successEl.style.display = 'none'
-
-      const { error } = await supabase
-        .from('pierogi_scores')
-        .upsert(
-          { player_name, hole_number, strokes, updated_at: new Date().toISOString() },
-          { onConflict: 'player_name,hole_number' }
-        )
-
-      submitBtn.disabled = false
-      submitBtn.textContent = 'Post Score'
-
-      if (error) {
-        showError(error.message)
-      } else {
-        localStorage.setItem('pierogi_player_name', player_name)
-        localStorage.setItem('pierogi_last_hole', hole_number)
-        showSuccess(`Hole ${hole_number}: ${strokes} strokes posted for ${player_name}.`)
-        if (hole_number < 18) holeSelect.value = hole_number + 1
-        updateHolePar()
-      }
-    })
 
     async function loadLeaderboard() {
       const { data, error } = await supabase
@@ -394,7 +539,7 @@
               return `
               <tr>
                 <td class="rank">${i + 1}</td>
-                <td class="name">${escapeHtml(p.name)}</td>
+                <td class="name"><button type="button" class="name-link" data-name="${escapeHtml(p.name)}">${escapeHtml(p.name)}</button></td>
                 <td class="num thru">${p.thru}</td>
                 <td class="num total ${s.cls}">${s.text}</td>
               </tr>
@@ -403,6 +548,10 @@
           </tbody>
         </table>
       `
+
+      boardEl.querySelectorAll('.name-link').forEach(btn => {
+        btn.addEventListener('click', () => viewScorecard(btn.dataset.name))
+      })
 
       document.getElementById('updated-at').innerHTML =
         `<span class="live-dot"></span>Live — updated ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
@@ -415,7 +564,17 @@
     }
 
     loadLeaderboard()
-    setInterval(loadLeaderboard, 8000)
+
+    // Instant updates via Supabase Realtime, with periodic polling as a fallback
+    // in case a connection drops on spotty course wifi/cell service.
+    supabase
+      .channel('pierogi_scores_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'pierogi_scores' }, () => {
+        loadLeaderboard()
+      })
+      .subscribe()
+
+    setInterval(loadLeaderboard, 20000)
   </script>
 
 </body>

@@ -50,7 +50,18 @@
     table.board tr:nth-child(3) .rank { color: #A0622D; }
     table.board .name { font-weight: 600; color: var(--pv-ink); }
     table.board .total { font-weight: 700; color: var(--pv-green-dark); }
+    table.board .total.over { color: #B42318; }
+    table.board .total.even { color: var(--pv-text-secondary); }
     table.board .thru { color: var(--pv-text-secondary); }
+
+    .golfer-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 4px; border-bottom: 1px solid var(--pv-border); }
+    .golfer-row:last-child { border-bottom: none; }
+    .golfer-row .g-name { font-size: 0.9375rem; font-weight: 600; color: var(--pv-ink); }
+    .golfer-remove { background: none; border: none; color: #B42318; font-size: 0.8125rem; font-weight: 600; cursor: pointer; padding: 6px 8px; }
+    .golfer-add-row { display: flex; gap: 10px; margin-bottom: 10px; }
+    .golfer-add-row input { flex: 1; min-width: 0; }
+    .golfer-list { margin-bottom: 20px; }
+    .section-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--pv-text-tertiary); margin-bottom: 10px; }
 
     .empty-state { text-align: center; padding: 40px 16px; color: var(--pv-text-secondary); font-size: 0.9375rem; }
     .live-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--pv-green); margin-right: 6px; animation: pulse 2s infinite; }
@@ -63,12 +74,13 @@
   <div class="po-header">
     <div class="eyebrow">🥟 Inaugural Event</div>
     <h1>Pierogi Open</h1>
-    <p>Live scores from the course</p>
+    <p>Juniata Golf Club · Par 67</p>
   </div>
 
   <div class="po-tabs">
     <button class="po-tab active" id="tab-board" onclick="showView('board')">Leaderboard</button>
     <button class="po-tab" id="tab-post" onclick="showView('post')">Post a Score</button>
+    <button class="po-tab" id="tab-golfers" onclick="showView('golfers')">Golfers</button>
   </div>
 
   <!-- Leaderboard view -->
@@ -85,13 +97,17 @@
     <div class="po-msg" id="post-success"></div>
 
     <form id="score-form">
-      <div class="fg">
+      <div class="fg" id="player-select-fg" style="display:none;">
+        <label>Golfer</label>
+        <select id="player-select"></select>
+      </div>
+      <div class="fg" id="player-text-fg">
         <label>Your Name</label>
-        <input type="text" id="player-name" placeholder="e.g. Luke O." required autocomplete="name" />
+        <input type="text" id="player-name" placeholder="e.g. Luke O." autocomplete="name" />
       </div>
 
       <div class="fg">
-        <label>Hole</label>
+        <label>Hole <span id="hole-par" style="text-transform:none; font-weight:400; color:var(--pv-text-secondary);"></span></label>
         <select id="hole-number" required></select>
       </div>
 
@@ -108,21 +124,159 @@
     </form>
   </div>
 
+  <!-- My Golfers view -->
+  <div id="view-golfers" class="po-card" style="display:none;">
+    <div class="po-msg" id="golfer-error"></div>
+
+    <div class="section-label">Add a Golfer</div>
+    <div class="golfer-add-row">
+      <input type="text" id="golfer-first" placeholder="First name" autocomplete="given-name" />
+      <input type="text" id="golfer-last" placeholder="Last name" autocomplete="family-name" />
+    </div>
+    <button type="button" class="po-submit" id="add-golfer-btn" style="margin-bottom:24px;">Add Golfer</button>
+
+    <div class="section-label">Your Golfers</div>
+    <div class="golfer-list" id="golfer-list">
+      <div class="empty-state" style="padding:20px 16px;">No golfers added yet. Add yourself or your group to speed up posting scores.</div>
+    </div>
+  </div>
+
   <script type="module">
     import { supabase } from '../js/supabase.js'
 
+    // Juniata Golf Club (Philadelphia) — par per hole, holes 1–18
+    const PARS = [3, 4, 5, 4, 4, 5, 4, 3, 4, 3, 4, 3, 3, 4, 3, 4, 4, 3]
+    const COURSE_PAR = PARS.reduce((a, b) => a + b, 0)
+
     const holeSelect = document.getElementById('hole-number')
+    const holeParEl = document.getElementById('hole-par')
     for (let i = 1; i <= 18; i++) {
       const opt = document.createElement('option')
       opt.value = i
-      opt.textContent = 'Hole ' + i
+      opt.textContent = 'Hole ' + i + ' — Par ' + PARS[i - 1]
       holeSelect.appendChild(opt)
     }
 
+    function updateHolePar() {
+      holeParEl.textContent = '(Par ' + PARS[parseInt(holeSelect.value, 10) - 1] + ')'
+    }
+    holeSelect.addEventListener('change', updateHolePar)
+    updateHolePar()
+
+    // --- My Golfers ---
+    function getGolfers() {
+      try { return JSON.parse(localStorage.getItem('pierogi_my_golfers') || '[]') }
+      catch { return [] }
+    }
+    function saveGolfers(list) {
+      localStorage.setItem('pierogi_my_golfers', JSON.stringify(list))
+    }
+
+    const playerSelectFg = document.getElementById('player-select-fg')
+    const playerTextFg = document.getElementById('player-text-fg')
+    const playerSelect = document.getElementById('player-select')
+    const playerNameInput = document.getElementById('player-name')
+    const OTHER_VALUE = '__other__'
+
+    function refreshPlayerPicker() {
+      const golfers = getGolfers()
+      playerSelect.innerHTML = ''
+      golfers.forEach(name => {
+        const opt = document.createElement('option')
+        opt.value = name
+        opt.textContent = name
+        playerSelect.appendChild(opt)
+      })
+      const otherOpt = document.createElement('option')
+      otherOpt.value = OTHER_VALUE
+      otherOpt.textContent = 'Someone else…'
+      playerSelect.appendChild(otherOpt)
+
+      if (golfers.length > 0) {
+        playerSelectFg.style.display = 'block'
+        const savedName = localStorage.getItem('pierogi_player_name')
+        playerSelect.value = golfers.includes(savedName) ? savedName : golfers[0]
+        updatePlayerTextVisibility()
+      } else {
+        playerSelectFg.style.display = 'none'
+        playerTextFg.style.display = 'block'
+      }
+    }
+
+    function updatePlayerTextVisibility() {
+      playerTextFg.style.display = playerSelect.value === OTHER_VALUE ? 'block' : 'none'
+    }
+
+    playerSelect.addEventListener('change', updatePlayerTextVisibility)
+
+    function currentPlayerName() {
+      if (playerSelectFg.style.display !== 'none' && playerSelect.value !== OTHER_VALUE) {
+        return playerSelect.value
+      }
+      return playerNameInput.value.trim()
+    }
+
+    const golferErrorEl = document.getElementById('golfer-error')
+
+    function renderGolferList() {
+      const golfers = getGolfers()
+      const listEl = document.getElementById('golfer-list')
+      if (golfers.length === 0) {
+        listEl.innerHTML = `<div class="empty-state" style="padding:20px 16px;">No golfers added yet. Add yourself or your group to speed up posting scores.</div>`
+        return
+      }
+      listEl.innerHTML = golfers.map(name => `
+        <div class="golfer-row">
+          <span class="g-name">${escapeHtml(name)}</span>
+          <button type="button" class="golfer-remove" data-name="${escapeHtml(name)}">Remove</button>
+        </div>
+      `).join('')
+      listEl.querySelectorAll('.golfer-remove').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const golfers = getGolfers().filter(n => n !== btn.dataset.name)
+          saveGolfers(golfers)
+          renderGolferList()
+          refreshPlayerPicker()
+        })
+      })
+    }
+
+    document.getElementById('add-golfer-btn').addEventListener('click', () => {
+      golferErrorEl.style.display = 'none'
+      const first = document.getElementById('golfer-first').value.trim()
+      const last = document.getElementById('golfer-last').value.trim()
+
+      if (!first || !last) {
+        golferErrorEl.textContent = 'Enter both a first and last name.'
+        golferErrorEl.style.display = 'block'
+        return
+      }
+
+      const fullName = `${first} ${last}`
+      const golfers = getGolfers()
+      const isDuplicate = golfers.some(n => n.toLowerCase() === fullName.toLowerCase())
+
+      if (isDuplicate) {
+        golferErrorEl.textContent = `${fullName} is already on your list.`
+        golferErrorEl.style.display = 'block'
+        return
+      }
+
+      golfers.push(fullName)
+      saveGolfers(golfers)
+      document.getElementById('golfer-first').value = ''
+      document.getElementById('golfer-last').value = ''
+      renderGolferList()
+      refreshPlayerPicker()
+    })
+
     const savedName = localStorage.getItem('pierogi_player_name')
-    if (savedName) document.getElementById('player-name').value = savedName
+    if (savedName) playerNameInput.value = savedName
+    refreshPlayerPicker()
+
     const savedHole = localStorage.getItem('pierogi_last_hole')
     if (savedHole) holeSelect.value = Math.min(18, parseInt(savedHole, 10) + 1) || 1
+    updateHolePar()
 
     window.bumpStrokes = function (delta) {
       const el = document.getElementById('strokes')
@@ -133,9 +287,13 @@
     window.showView = function (view) {
       document.getElementById('view-board').style.display = view === 'board' ? 'block' : 'none'
       document.getElementById('view-post').style.display = view === 'post' ? 'block' : 'none'
+      document.getElementById('view-golfers').style.display = view === 'golfers' ? 'block' : 'none'
       document.getElementById('tab-board').classList.toggle('active', view === 'board')
       document.getElementById('tab-post').classList.toggle('active', view === 'post')
+      document.getElementById('tab-golfers').classList.toggle('active', view === 'golfers')
       if (view === 'board') loadLeaderboard()
+      if (view === 'golfers') renderGolferList()
+      if (view === 'post') refreshPlayerPicker()
     }
 
     const errorEl = document.getElementById('post-error')
@@ -156,7 +314,7 @@
     document.getElementById('score-form').addEventListener('submit', async (e) => {
       e.preventDefault()
       const submitBtn = document.getElementById('submit-btn')
-      const player_name = document.getElementById('player-name').value.trim()
+      const player_name = currentPlayerName()
       const hole_number = parseInt(holeSelect.value, 10)
       const strokes = parseInt(document.getElementById('strokes').value, 10)
 
@@ -184,6 +342,7 @@
         localStorage.setItem('pierogi_last_hole', hole_number)
         showSuccess(`Hole ${hole_number}: ${strokes} strokes posted for ${player_name}.`)
         if (hole_number < 18) holeSelect.value = hole_number + 1
+        updateHolePar()
       }
     })
 
@@ -207,29 +366,40 @@
 
       const players = {}
       for (const row of data) {
-        if (!players[row.player_name]) players[row.player_name] = { total: 0, thru: 0 }
-        players[row.player_name].total += row.strokes
+        if (!players[row.player_name]) players[row.player_name] = { strokes: 0, par: 0, thru: 0 }
+        const par = PARS[row.hole_number - 1] || 0
+        players[row.player_name].strokes += row.strokes
+        players[row.player_name].par += par
         players[row.player_name].thru += 1
       }
 
       const ranked = Object.entries(players)
-        .map(([name, v]) => ({ name, ...v }))
-        .sort((a, b) => a.total - b.total || b.thru - a.thru)
+        .map(([name, v]) => ({ name, ...v, relative: v.strokes - v.par }))
+        .sort((a, b) => a.relative - b.relative || b.thru - a.thru)
+
+      function formatScore(relative) {
+        if (relative === 0) return { text: 'E', cls: 'even' }
+        if (relative > 0) return { text: '+' + relative, cls: 'over' }
+        return { text: String(relative), cls: '' }
+      }
 
       boardEl.innerHTML = `
         <table class="board">
           <thead>
-            <tr><th></th><th>Player</th><th class="num">Thru</th><th class="num">Total</th></tr>
+            <tr><th></th><th>Player</th><th class="num">Thru</th><th class="num">Score</th></tr>
           </thead>
           <tbody>
-            ${ranked.map((p, i) => `
+            ${ranked.map((p, i) => {
+              const s = formatScore(p.relative)
+              return `
               <tr>
                 <td class="rank">${i + 1}</td>
                 <td class="name">${escapeHtml(p.name)}</td>
                 <td class="num thru">${p.thru}</td>
-                <td class="num total">${p.total}</td>
+                <td class="num total ${s.cls}">${s.text}</td>
               </tr>
-            `).join('')}
+            `
+            }).join('')}
           </tbody>
         </table>
       `

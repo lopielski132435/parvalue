@@ -415,7 +415,17 @@
     }
 
     loadLeaderboard()
-    setInterval(loadLeaderboard, 8000)
+
+    // Instant updates via Supabase Realtime, with periodic polling as a fallback
+    // in case a connection drops on spotty course wifi/cell service.
+    supabase
+      .channel('pierogi_scores_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'pierogi_scores' }, () => {
+        loadLeaderboard()
+      })
+      .subscribe()
+
+    setInterval(loadLeaderboard, 20000)
   </script>
 
 </body>

@@ -369,7 +369,10 @@
       loadScorecard(currentPlayerName())
     }
 
-    playerSelect.addEventListener('change', () => loadScorecard(currentPlayerName()))
+    playerSelect.addEventListener('change', () => {
+      localStorage.setItem('pierogi_player_name', playerSelect.value)
+      loadScorecard(currentPlayerName())
+    })
 
     function currentPlayerName() {
       return playerSelect.value || null

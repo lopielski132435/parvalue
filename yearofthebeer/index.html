@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Year of the Beer — Countdown</title>
+  <meta name="description" content="Countdown to the Year of the Beer being over." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #1A1A18;
+      color: #F6F5F1;
+      font-family: 'Inter', system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+      text-align: center;
+    }
+
+    .eyebrow {
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.22em;
+      color: #D9A441;
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-weight: 500;
+      font-size: clamp(1.75rem, 5vw, 3rem);
+      line-height: 1.2;
+      max-width: 780px;
+      margin-bottom: 48px;
+    }
+
+    .clock {
+      display: flex;
+      gap: clamp(10px, 3vw, 28px);
+      justify-content: center;
+    }
+
+    .unit {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: clamp(64px, 18vw, 140px);
+    }
+
+    .num {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-variant-numeric: tabular-nums;
+      font-size: clamp(2.5rem, 11vw, 6.5rem);
+      line-height: 1;
+      color: #F6F5F1;
+    }
+
+    .label {
+      margin-top: 12px;
+      font-size: 0.6875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      color: #B8B6AC;
+    }
+
+    .rule {
+      width: 120px;
+      height: 2px;
+      background: #D9A441;
+      margin: 48px auto 20px;
+    }
+
+    .target {
+      font-size: 0.875rem;
+      color: #B8B6AC;
+    }
+
+    .done { display: none; font-family: 'Playfair Display', Georgia, serif; font-size: clamp(2rem, 7vw, 4rem); }
+    body.over .clock, body.over .rule, body.over .target { display: none; }
+    body.over .done { display: block; }
+  </style>
+</head>
+<body>
+  <div class="eyebrow">Year of the Beer</div>
+  <h1>Countdown to the Year of the Beer being over</h1>
+
+  <div class="clock" role="timer" aria-live="off">
+    <div class="unit"><span class="num" id="d">--</span><span class="label">Days</span></div>
+    <div class="unit"><span class="num" id="h">--</span><span class="label">Hours</span></div>
+    <div class="unit"><span class="num" id="m">--</span><span class="label">Minutes</span></div>
+    <div class="unit"><span class="num" id="s">--</span><span class="label">Seconds</span></div>
+  </div>
+
+  <div class="done">The Year of the Beer is over.</div>
+
+  <div class="rule"></div>
+  <div class="target">Ends January 1, 2027 at 12:00 AM Eastern</div>
+
+  <script>
+    // Midnight Eastern (EST, UTC-5) on 1/1/2027 — same moment for every viewer.
+    const TARGET = Date.parse('2027-01-01T00:00:00-05:00')
+
+    const pad = n => String(n).padStart(2, '0')
+    const els = { d: document.getElementById('d'), h: document.getElementById('h'), m: document.getElementById('m'), s: document.getElementById('s') }
+
+    function tick() {
+      const ms = TARGET - Date.now()
+      if (ms <= 0) {
+        document.body.classList.add('over')
+        return
+      }
+      const total = Math.floor(ms / 1000)
+      els.d.textContent = Math.floor(total / 86400)
+      els.h.textContent = pad(Math.floor((total % 86400) / 3600))
+      els.m.textContent = pad(Math.floor((total % 3600) / 60))
+      els.s.textContent = pad(total % 60)
+    }
+
+    tick()
+    setInterval(tick, 250)
+  </script>
+</body>
+</html>
